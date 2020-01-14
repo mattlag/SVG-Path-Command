@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>SVG Path Command - Convert</title>
+	<script src="svg-path-command.js"></script>
+	<script>
+		function main() {
+			// Just for initial testing
+			let d = 'M10,10 H100 V100 H-100 V-100';
+
+			document.getElementById('sourceText').innerHTML = d;
+			document.getElementById('resultText').innerHTML = convertSVGPathCommands(d, {addLineBreaks: true});
+		}
+	</script>
+	<style>
+		textarea {
+			height: 40vh;
+			width: 500px;
+			font-family: 'Cascadia Code', Consolas, monospace;
+			font-size: 14px;
+		}
+	</style>
+</head>
+<body onload='main();'>
+<h3>Source</h3>
+<textarea id="sourceText"></textarea>
+<h3>Result</h3>
+<textarea id="resultText"></textarea>
+</body>
+</html>
