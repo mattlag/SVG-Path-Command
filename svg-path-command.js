@@ -184,22 +184,76 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				
 			} else if(currentCommand.type === 'c'){
 				// Cubic Bezier
+				result.push({
+					type: 'S',
+					parameters: [
+						currentCommand.parameters[0] + currentX,
+						currentCommand.parameters[1] + currentY,
+						currentCommand.parameters[2] + currentX,
+						currentCommand.parameters[3] + currentY,
+						currentCommand.parameters[4] + currentX,
+						currentCommand.parameters[5] + currentY
+					]
+				});
+				
+				currentX = result[result.length-1].parameters[4];
+				currentY = result[result.length-1].parameters[5];
 
 			} else if(currentCommand.type === 's'){
 				// Smooth Cubic Bezier
+				result.push({
+					type: 'S',
+					parameters: [
+						currentCommand.parameters[0] + currentX,
+						currentCommand.parameters[1] + currentY,
+						currentCommand.parameters[2] + currentX,
+						currentCommand.parameters[3] + currentY
+					]
+				});
+				
+				currentX = result[result.length-1].parameters[2];
+				currentY = result[result.length-1].parameters[3];
 
 			} else if(currentCommand.type === 'q'){
 				// Quadratic Bezier
+				result.push({
+					type: 'Q',
+					parameters: [
+						currentCommand.parameters[0] + currentX,
+						currentCommand.parameters[1] + currentY,
+						currentCommand.parameters[2] + currentX,
+						currentCommand.parameters[3] + currentY
+					]
+				});
+				
+				currentX = result[result.length-1].parameters[2];
+				currentY = result[result.length-1].parameters[3];
 
 			} else if(currentCommand.type === 't'){
 				// Smooth Quadratic Bezier
+				result.push({
+					type: 'T',
+					parameters: [currentCommand.parameters[0] + currentX]
+				});
+				
+				currentY = result[result.length-1].parameters[0];
 
 			} else if(currentCommand.type === 'a'){
 				// Arc to
+				result.push({
+					type: 'A',
+					parameters: [
+						(currentCommand.parameters[5] + currentX),
+						(currentCommand.parameters[6] + currentY)
+					]
+				});
+
+				currentX = result[result.length-1].parameters[5];
+				currentY = result[result.length-1].parameters[6];
 
 			} else if(currentCommand.type === 'z'){
 				// End path
-				result.push({type: 'Z'})
+				result.push({type: 'Z'});
 
 			} else {
 				// command is absolute, just push it

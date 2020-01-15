@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>SVG Path Command - Test</title>
+	<script src="svg-path-command.js"></script>
+	<script>
+		function main() {
+			let files = [
+				'Path_A',
+				'Path_A2',
+				'Path_Ar',
+				'Path_Ar2',
+				'Path_C',
+				'Path_Cr',
+				'Path_HV',
+				'Path_HVr',
+				'Path_L',
+				'Path_Lr',
+				'Path_M',
+				'Path_Mr',
+				'Path_Q',
+				'Path_Qr',
+				'Path_S',
+				'Path_Sr',
+				'Path_T',
+				'Path_Tr'
+			];
+
+			let target = document.getElementById('target');
+
+			for(let i=0; i<files.length; i++){
+				target.innerHTML += `
+					<h3>${files[i]}</h3>
+					<object id="pre-img-${files[i]}" data="tests/${files[i]}.svg" type="image/svg+xml"></object>
+					<textarea id="pre-src-${files[i]}"></textarea>
+					<br><br>
+				`;
+			}
+
+			let preimg;
+			let preimgid;
+			for(let j=0; j<files.length; j++){				
+				document.getElementById(`pre-img-${files[j]}`).addEventListener("load", function(){
+					let preimgsrc = this.contentDocument.children[0].outerHTML;
+					console.log(preimgsrc);
+					document.getElementById(`pre-src-${files[j]}`).innerHTML = preimgsrc;
+				}, false);
+			}
+		}
+	</script>
+	<style>
+		object {
+			border: 1px solid slategray;
+		}
+
+		textarea {
+			height: 40vh;
+			width: 500px;
+			font-family: 'Cascadia Code', Consolas, monospace;
+			font-size: 14px;
+		}
+	</style>
+</head>
+<body onload='main();'>
+<div id="target"></div>
+</body>
+</html>
