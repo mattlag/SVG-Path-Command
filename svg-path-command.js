@@ -30,7 +30,7 @@ const validateOptions = function(options){
  * @param {object} options - conversion options
  */
 const convertSVGPathCommands = function(dAttribute = '', options = {}) {
-	log(`> Convert SVG Path Commands start`);
+	log(`\n\n>>>>>>>>>>>>>>>>>>>>>>>\nConvert SVG Path Commands start`);
 	log(`\t dAttribute: ${dAttribute}`);
 	/*
 	 * Check arguments
@@ -53,9 +53,13 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	// Take the command string and split into an array containing 
 	// command objects, comprised of the command letter and parameters
 	let commands = chunkCommands(dAttribute);
+	log(`After chunkCommands`);
+	log(commands);
 
 	// Convert relative commands mlhvcsqtaz to absolute commands MLHVCSQTAZ
 	commands = convertToAbsolute(commands);
+	log(`After convertToAbsolute`);
+	log(commands);
 
 	// Convert chains of parameters to individual command / parameter pairs
 	commands = splitChainParameters(commands);
@@ -77,6 +81,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		return commands;
 	} else {
 		let dAttribute = generateDAttribute(commands, options.addLineBreaks);
+		log(`RETURNING\n${dAttribute}`);
 		return dAttribute;
 	}
 
@@ -86,18 +91,24 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	 */
 
 	function chunkCommands(dAttribute){
+		log(`Start chunkCommands`);
 		let data = dAttribute.replace(/\s+/g, ',');
 		let result = [];
-		let commandStart;
+		let commandStart = false;
+		log(data);
 
 		// Find the first valid command
 		for(let j=0; j<data.length; j++) {
 			if(isCommand(data.charAt(j))) {
 				commandStart = j;
+				log(`First valid command ${data.charAt(j)} found at ${j}`);
 				break;
 			}
-
+		}
+		
+		if(commandStart === false) {
 			// No valid commands found
+			log(`No valid commands found, returning Z`);
 			return [{type: 'Z'}];
 		}
 
@@ -125,6 +136,10 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		function chunkParameters(parameters = '') {
 			let validatedParameters = [];
 
+			if(parameters.charAt(0) === ',') {
+				parameters = parameters.substring(1);
+			}
+
 			if(parameters.charAt(parameters.length-1) === ',') {
 				parameters = parameters.substring(0, parameters.length-1);
 			}
@@ -142,130 +157,203 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 
 
 	function convertToAbsolute(commands){
+		log(`Start convertToAbsolute: ${commands.length} command chunks`);
 		let result = [];
+		let newCommand = {};
+		let i;
 		let currentX = 0;
 		let currentY = 0;
+		let newX = 0;
+		let newY = 0;
 		let currentCommand;
-		let latestParameters;
 
-		for(let i=0; i<commands.length; i++){
-			currentCommand = commands[i];
+		for(let c=0; c<commands.length; c++){
+			currentCommand = commands[c];
+			log(`... doing command ${currentCommand.type}`);
 
 			if(currentCommand.type === 'm' || currentCommand.type === 'l'){
 				// MoveTo and LineTo
-				result.push({
-					type: currentCommand.toUpperCase(),
-					parameters: [
-						(currentCommand.parameters[0] + currentX),
-						(currentCommand.parameters[1] + currentY)
-					]
-				});
+				newCommand = {
+					type: (currentCommand.type === 'm' ? 'M' : 'L'),
+					parameters: []
+				};
 
-				currentX = result[result.length-1].parameters[0];
-				currentY = result[result.length-1].parameters[1];
+				for(i=0; i<currentCommand.parameters.length; i+=2) {
+					newX = (currentCommand.parameters[i+0] + currentX);
+					newY = (currentCommand.parameters[i+1] + currentY);
+					newCommand.parameters.push(newX);
+					newCommand.parameters.push(newY);
+					currentX = newX;
+					currentY = newY;
+				}
+
+				result.push(newCommand);
+
 				
 			} else if(currentCommand.type === 'h'){
 				// Horizontal line to
-				result.push({
+				newCommand = {
 					type: 'H',
-					parameters: [currentCommand.parameters[0] + currentX]
-				});
+					parameters: []
+				};
 
-				currentX = result[result.length-1].parameters[0];
+				for(i=0; i<currentCommand.parameters.length; i++) {
+					newX = currentCommand.parameters[i] + currentX;
+					newCommand.parameters.push(newX);
+					currentX = newX;
+				}
+
+				result.push(newCommand);
+
 
 			} else if(currentCommand.type === 'v'){
 				// Horizontal line to
-				result.push({
+				newCommand = {
 					type: 'V',
-					parameters: [currentCommand.parameters[0] + currentX]
-				});
-				
-				currentY = result[result.length-1].parameters[0];
+					parameters: []
+				};
+
+				for(i=0; i<currentCommand.parameters.length; i++) {
+					newY = currentCommand.parameters[i] + currentY;
+					newCommand.parameters.push(newY);
+					currentY = newY;
+				}
+
+				result.push(newCommand);
+
 				
 			} else if(currentCommand.type === 'c'){
 				// Cubic Bezier
-				result.push({
-					type: 'S',
-					parameters: [
-						currentCommand.parameters[0] + currentX,
-						currentCommand.parameters[1] + currentY,
-						currentCommand.parameters[2] + currentX,
-						currentCommand.parameters[3] + currentY,
-						currentCommand.parameters[4] + currentX,
-						currentCommand.parameters[5] + currentY
-					]
-				});
-				
-				currentX = result[result.length-1].parameters[4];
-				currentY = result[result.length-1].parameters[5];
+				newCommand = {
+					type: 'C',
+					parameters: []
+				};
+
+				for(i=0; i<currentCommand.parameters.length; i+=6) {
+					newCommand.parameters.push(currentCommand.parameters[i+0] + currentX);
+					newCommand.parameters.push(currentCommand.parameters[i+1] + currentY);
+					newCommand.parameters.push(currentCommand.parameters[i+2] + currentX);
+					newCommand.parameters.push(currentCommand.parameters[i+3] + currentY);
+					newX = currentCommand.parameters[i+4] + currentX;
+					newY = currentCommand.parameters[i+5] + currentY;
+					newCommand.parameters.push(newX);
+					newCommand.parameters.push(newY);
+					currentX = newX;
+					currentY = newY;
+				}
+
+				result.push(newCommand);
+
 
 			} else if(currentCommand.type === 's'){
 				// Smooth Cubic Bezier
-				result.push({
+				newCommand = {
 					type: 'S',
-					parameters: [
-						currentCommand.parameters[0] + currentX,
-						currentCommand.parameters[1] + currentY,
-						currentCommand.parameters[2] + currentX,
-						currentCommand.parameters[3] + currentY
-					]
-				});
-				
-				currentX = result[result.length-1].parameters[2];
-				currentY = result[result.length-1].parameters[3];
+					parameters: []
+				};
+
+				for(i=0; i<currentCommand.parameters.length; i+=4) {
+					newCommand.parameters.push(currentCommand.parameters[i+0] + currentX);
+					newCommand.parameters.push(currentCommand.parameters[i+1] + currentY);
+					newX = currentCommand.parameters[i+2] + currentX;
+					newY = currentCommand.parameters[i+3] + currentY;
+					newCommand.parameters.push(newX);
+					newCommand.parameters.push(newY);
+					currentX = newX;
+					currentY = newY;
+				}
+
+				result.push(newCommand);
+
 
 			} else if(currentCommand.type === 'q'){
 				// Quadratic Bezier
-				result.push({
+				newCommand = {
 					type: 'Q',
-					parameters: [
-						currentCommand.parameters[0] + currentX,
-						currentCommand.parameters[1] + currentY,
-						currentCommand.parameters[2] + currentX,
-						currentCommand.parameters[3] + currentY
-					]
-				});
-				
-				currentX = result[result.length-1].parameters[2];
-				currentY = result[result.length-1].parameters[3];
+					parameters: []
+				};
+
+				for(i=0; i<currentCommand.parameters.length; i+=4) {
+					newCommand.parameters.push(currentCommand.parameters[i+0] + currentX);
+					newCommand.parameters.push(currentCommand.parameters[i+1] + currentY);
+					newX = currentCommand.parameters[i+2] + currentX;
+					newY = currentCommand.parameters[i+3] + currentY;
+					newCommand.parameters.push(newX);
+					newCommand.parameters.push(newY);
+					currentX = newX;
+					currentY = newY;
+				}
+
+				result.push(newCommand);
+
 
 			} else if(currentCommand.type === 't'){
 				// Smooth Quadratic Bezier
-				result.push({
+				newCommand = {
 					type: 'T',
-					parameters: [currentCommand.parameters[0] + currentX]
-				});
-				
-				currentY = result[result.length-1].parameters[0];
+					parameters: []
+				};
+
+				for(i=0; i<currentCommand.parameters.length; i+=2) {
+					newX = currentCommand.parameters[i+0] + currentX;
+					newY = currentCommand.parameters[i+1] + currentY;
+					newCommand.parameters.push(newX);
+					newCommand.parameters.push(newY);
+					currentX = newX;
+					currentY = newY;
+				}
+
+				result.push(newCommand);
+
 
 			} else if(currentCommand.type === 'a'){
 				// Arc to
-				result.push({
+				newCommand = {
 					type: 'A',
-					parameters: [
-						(currentCommand.parameters[5] + currentX),
-						(currentCommand.parameters[6] + currentY)
-					]
-				});
+					parameters: []
+				};
+				log(`Arc to relative parameters\n${currentCommand.parameters}`);
+				for(i=0; i<currentCommand.parameters.length; i+=7) {
+					newCommand.parameters.push(currentCommand.parameters[i+0]);
+					newCommand.parameters.push(currentCommand.parameters[i+1]);
+					newCommand.parameters.push(currentCommand.parameters[i+2]);
+					newCommand.parameters.push(currentCommand.parameters[i+3]);
+					newCommand.parameters.push(currentCommand.parameters[i+4]);
+					newX = currentCommand.parameters[i+5] + currentX;
+					newY = currentCommand.parameters[i+6] + currentY;
+					newCommand.parameters.push(newX);
+					newCommand.parameters.push(newY);
+					currentX = newX;
+					currentY = newY;
+				}
 
-				currentX = result[result.length-1].parameters[5];
-				currentY = result[result.length-1].parameters[6];
+				result.push(newCommand);
+
 
 			} else if(currentCommand.type === 'z'){
 				// End path
 				result.push({type: 'Z'});
 
+
 			} else {
-				// command is absolute, just push it
-				result.push(commands[i]);
-				latestParameters = result[result.length-1].parameters;
-				currentX = latestParameters[latestParameters.length-2];
-				currentY = latestParameters[latestParameters.length-1];
+				// command is absolute, push it
+				result.push(currentCommand);
+	
+				if (currentCommand.type === 'H') {
+					currentX = currentCommand.parameters[currentCommand.parameters.length-1];
+				} else if(currentCommand.type === 'V'){
+					currentY = currentCommand.parameters[currentCommand.parameters.length-1];
+				} else if (currentCommand.type !== 'Z') {
+					currentX = currentCommand.parameters[currentCommand.parameters.length-2];
+					currentY = currentCommand.parameters[currentCommand.parameters.length-1];
+				}
 			}
+
 		}
 
 		return result;
 	}
+
 
 	function splitChainParameters(commands){
 
@@ -303,7 +391,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				
 				if(commands[i].parameters){
 					result += commands[i].parameters.join(', ');
-					result += ' ';
+					result += '  ';
 				}
 			}
 		}
@@ -316,6 +404,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	 * Helper Functions
 	 */
 	function isCommand(c){
+		// log(`isCommand passed ${c}`);
 		if('MmLlCcSsZzHhVvAaQqTt'.indexOf(c) > -1) return true;
 		return false;
 	}
@@ -328,10 +417,6 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		if('mlcszhvaqt'.indexOf(c) > -1) return true;
 		return false;
 	}
-
-	function log(message) {
-		console.log(message);
-	}
 };
 
 /**
@@ -340,9 +425,9 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
  * @param {string} document - text from an SVG file
  * @param {object} options - conversion options
  */
-const convertSVGDOcument = function(document = '', options = {}) {
-	log(`> Convert SVG Document start`);
-	log(`\t commands: ${commands}`);
+const convertSVGDocument = function(document = '', options = {}) {
+	log(`\n\n>>>>>>>>>>>>>>>>>>>>>>>\nConvert SVG Document start`);
+	log(`\t document:\n${document}`);
 	/*
 	 * Check arguments
 	 */
@@ -354,8 +439,52 @@ const convertSVGDOcument = function(document = '', options = {}) {
 	if(!document) return '<svg></svg>';
 
 	/*
-	 * stuff
+	 * Main process
 	 */
 
-	return document;
+	let svgDocument = readXML(document);
+	log(`PRE svgDocument`);
+	log(svgDocument);
+	
+	let dAttributeElements = svgDocument.querySelectorAll('[d]');
+	let elem;
+	for(let i=0; i<dAttributeElements.length; i++) {
+		elem = dAttributeElements[i];
+		elem.setAttribute('d', convertSVGPathCommands(elem.getAttribute('d'), options));
+	}
+
+	log(`POST svgDocument`);
+	log(svgDocument);
+
+	return svgDocument.rootElement.outerHTML;
+
+	function readXML(inputXML){
+		var XMLdoc, XMLerror;
+	
+		if (typeof window.DOMParser !== 'undefined') {
+			XMLdoc = (new window.DOMParser()).parseFromString(inputXML, 'text/xml');
+		} else if (typeof window.ActiveXObject !== 'undefined' && new window.ActiveXObject('Microsoft.XMLDOM')) {
+			XMLdoc = new window.ActiveXObject('Microsoft.XMLDOM');
+			XMLdoc.async = 'false';
+			XMLdoc.loadXML(inputXML);
+		} else {
+			console.warn('No XML document parser found.');
+			XMLerror = new SyntaxError('No XML document parser found.');
+			throw XMLerror;
+		}
+	
+		var parsererror = XMLdoc.getElementsByTagName('parsererror');
+		if (parsererror.length) {
+			var msgcon = XMLdoc.getElementsByTagName('div')[0].innerHTML;
+			XMLerror = new SyntaxError(trim(msgcon));
+			throw XMLerror;
+		}
+
+		return XMLdoc;
+	}
 };
+
+
+function log(message) {
+	console.log(message);
+}

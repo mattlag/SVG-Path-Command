@@ -27,6 +27,8 @@
 				'Path_Tr'
 			];
 
+			// files = files.slice(0, 6);
+
 			let target = document.getElementById('target');
 
 			for(let i=0; i<files.length; i++){
@@ -34,35 +36,66 @@
 					<h3>${files[i]}</h3>
 					<object id="pre-img-${files[i]}" data="tests/${files[i]}.svg" type="image/svg+xml"></object>
 					<textarea id="pre-src-${files[i]}"></textarea>
-					<br><br>
+					<br>
+					<div id="post-img-${files[i]}" class="post-img"></div>
+					<textarea id="post-src-${files[i]}"></textarea>
 				`;
 			}
 
-			let preimg;
-			let preimgid;
-			for(let j=0; j<files.length; j++){				
+			for(let j=0; j<files.length; j++){
 				document.getElementById(`pre-img-${files[j]}`).addEventListener("load", function(){
-					let preimgsrc = this.contentDocument.children[0].outerHTML;
-					console.log(preimgsrc);
-					document.getElementById(`pre-src-${files[j]}`).innerHTML = preimgsrc;
+					console.log(`\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n${files[j]}\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
+					let preSource = this.contentDocument.children[0].outerHTML;
+					document.getElementById(`pre-src-${files[j]}`).innerHTML = preSource;
+
+					let postSource = convertSVGDocument(preSource);
+					// let postNode = document.createElement('')
+					document.getElementById(`post-img-${files[j]}`).innerHTML = postSource;
+					document.getElementById(`post-src-${files[j]}`).innerHTML = postSource;
 				}, false);
 			}
 		}
 	</script>
 	<style>
-		object {
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-weight: normal;
+		}
+
+		h1, h2, h3 {
+			margin-top: 20px;
+			margin-bottom: 10px;
+		}
+
+		#target {
+			margin: 20px;
+		}
+
+		object, .post-img {
 			border: 1px solid slategray;
+			min-height: 300px;
+			min-width: 300px;
+		}
+
+		.post-img {
+			width: 300px;
+			display: inline-block;
 		}
 
 		textarea {
-			height: 40vh;
-			width: 500px;
+			height: 300px;
+			width: 800px;
 			font-family: 'Cascadia Code', Consolas, monospace;
 			font-size: 14px;
 		}
 	</style>
 </head>
 <body onload='main();'>
-<div id="target"></div>
+	<div id="target">
+		<h1>SVG Path Command - Test</h1>
+
+	</div>
 </body>
 </html>
