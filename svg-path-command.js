@@ -382,20 +382,80 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 
 	function generateDAttribute(commands, addLineBreaks){
 		let result = '';
+		let command;
+		let p;
+		let linebreak = addLineBreaks? '\n\t' : '';
 
 		for(let i=0; i<commands.length; i++){
-			if(commands[i].type){
-				if(addLineBreaks) result += '\n\t';
-				result += commands[i].type;
-				result += ' ';
+			command = commands[i];
+			if(command.type){
+
+				result += `${linebreak}${command.type}`;
 				
-				if(commands[i].parameters){
-					result += commands[i].parameters.join(', ');
-					result += '  ';
+				switch(command.type) {
+					case 'Z':
+					case 'z':
+						result += '  ';
+						result += linebreak;
+						break;
+
+					case 'H':
+					case 'h':
+					case 'V':
+					case 'v':
+						for(p=0; p<command.parameters.length; p+=2) {
+							result += ` ${command.parameters[p]}`;
+						}
+						result += '  ';
+						break;
+
+					case 'M':
+					case 'm':
+					case 'L':
+					case 'l':
+					case 'T':
+					case 't':
+						for(p=0; p<command.parameters.length; p+=2) {
+							if(addLineBreaks && p > 1) result += '\n\t ';
+							result += ` ${command.parameters[p]},${command.parameters[p+1]}`;
+						}
+						result += '  ';
+						break;
+
+					case 'Q':
+					case 'q':
+					case 'S':
+					case 's':
+						for(p=0; p<command.parameters.length; p+=4) {
+							if(addLineBreaks && p > 1) result += '\n\t ';
+							result += ` ${command.parameters[p]},${command.parameters[p+1]} ${command.parameters[p+2]},${command.parameters[p+3]}`;
+						}
+						result += '  ';
+						break;
+					
+					case 'C':
+					case 'c':
+						for(p=0; p<command.parameters.length; p+=6) {
+							if(addLineBreaks && p > 1) result += '\n\t ';
+							result += ` ${command.parameters[p]},${command.parameters[p+1]} ${command.parameters[p+2]},${command.parameters[p+3]} ${command.parameters[p+4]},${command.parameters[p+5]}`;
+						}
+						result += '  ';
+						break;
+
+					case 'A':
+					case 'a':
+						for(p=0; p<command.parameters.length; p+=7) {
+							if(addLineBreaks && p > 1) result += '\n\t ';
+							result += ` ${command.parameters[p]} ${command.parameters[p+1]} ${command.parameters[p+2]} ${command.parameters[p+3]} ${command.parameters[p+4]} ${command.parameters[p+5]},${command.parameters[p+6]}`;
+						}
+						result += '  ';
+						break;
 				}
 			}
 		}
 
+		result = result.trim();
+		if(addLineBreaks) result = `\n\t${result}\n`;
 		return result;
 	}
 
@@ -406,15 +466,6 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	function isCommand(c){
 		// log(`isCommand passed ${c}`);
 		if('MmLlCcSsZzHhVvAaQqTt'.indexOf(c) > -1) return true;
-		return false;
-	}
-
-	function isCommandEqualTo(target, search){
-		return search.indexOf(target) > -1;
-	}
-
-	function isRelativeCommand(c){
-		if('mlcszhvaqt'.indexOf(c) > -1) return true;
 		return false;
 	}
 };
