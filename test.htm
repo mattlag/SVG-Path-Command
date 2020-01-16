@@ -26,6 +26,9 @@
 			'Path_Tr'
 		];
 
+		files = files.reverse();
+		let fileContent = {};
+
 		function main(){
 			let target = document.getElementById('target');
 			target.innerHTML = '';
@@ -43,6 +46,7 @@
 				document.getElementById(`pre-img-${files[j]}`).addEventListener("load", function(){
 					let preSource = this.contentDocument.children[0].outerHTML;
 					document.getElementById(`pre-src-${files[j]}`).innerHTML = preSource;
+					fileContent[files[j]] = preSource;
 					let postSource = convertSVGDocument(preSource, getOptions());
 					document.getElementById(`post-img-${files[j]}`).innerHTML = postSource;
 					document.getElementById(`post-src-${files[j]}`).innerHTML = postSource;
@@ -55,7 +59,7 @@
 			// files = files.slice(0, 6);
 			for(let j=0; j<files.length; j++){
 				console.log(`\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n${files[j]}\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
-				let preSource = document.getElementById(`pre-src-${files[j]}`).innerHTML;
+				let preSource = fileContent[files[j]];
 				let postSource = convertSVGDocument(preSource, getOptions());
 				document.getElementById(`post-img-${files[j]}`).innerHTML = postSource;
 				document.getElementById(`post-src-${files[j]}`).innerHTML = postSource;
@@ -64,10 +68,12 @@
 
 		function getOptions(){
 			return {
+				addLineBreaks: document.getElementById('check-addLineBreaks').checked,
+				splitChains: document.getElementById('check-splitChains').checked,
+				convertLines: document.getElementById('check-convertLines').checked,
 				convertSmooth: document.getElementById('check-convertSmooth').checked,
 				convertQuadraticToCubic: document.getElementById('check-convertQuadraticToCubic').checked,
-				convertArcToCubic: document.getElementById('check-convertArcToCubic').checked,
-				addLineBreaks: document.getElementById('check-addLineBreaks').checked
+				convertArcToCubic: document.getElementById('check-convertArcToCubic').checked
 			};
 		}
 	</script>
@@ -121,10 +127,12 @@
 <body onload='main();'>
 	<div class="head">
 		<h1>SVG Path Command - Test</h1>
+		<input type="checkbox" id="check-addLineBreaks" onchange="refresh();">&nbsp;<label for="check-addLineBreaks">addLineBreaks</label>&emsp;
+		<input type="checkbox" id="check-splitChains" onchange="refresh();">&nbsp;<label for="check-splitChains">splitChains</label>&emsp;
+		<input type="checkbox" id="check-convertLines" onchange="refresh();">&nbsp;<label for="check-convertLines">convertLines</label>&emsp;
 		<input type="checkbox" id="check-convertSmooth" onchange="refresh();">&nbsp;<label for="check-convertSmooth">convertSmooth</label>&emsp;
 		<input type="checkbox" id="check-convertQuadraticToCubic" onchange="refresh();">&nbsp;<label for="check-convertQuadraticToCubic">convertQuadraticToCubic</label>&emsp;
 		<input type="checkbox" id="check-convertArcToCubic" onchange="refresh();">&nbsp;<label for="check-convertArcToCubic">convertArcToCubic</label>&emsp;
-		<input type="checkbox" id="check-addLineBreaks" onchange="refresh();">&nbsp;<label for="check-addLineBreaks">addLineBreaks</label>&emsp;
 	</div>
 	<div id="target"></div>
 </body>

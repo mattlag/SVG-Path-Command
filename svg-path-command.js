@@ -3,19 +3,23 @@
  * These options apply to both convertSVGPathCommands and convertSVGDocument
  * Five options, off by default, for how the commands get processed
  * @param {object} options - conversion options
+ * @param {boolean} options.addLineBreaks - each command and it's parameters is on it's own line
+ * @param {boolean} options.splitChains - chained parameters will be split to have their own command
+ * @param {boolean} options.convertLines - changes H and V shorthand to regular LineTo notation
  * @param {boolean} options.convertSmooth - convert smooth Béziers to regular Béziers
  * @param {boolean} options.convertQuadraticToCubic - quadratic Béziers (one control point) converted
  * 											to cubic Béziers (two control points)
  * @param {boolean} options.convertArcToCubic - approximate the Arc with cubic Bézier paths
- * @param {boolean} options.addLineBreaks - each command and it's parameters is on it's own line
  * @param {boolean} options.returnObject - return an object representation of the commands, as 
  * 								opposed to a single string representing the d attribute value
  */
 const validateOptions = function(options){
+	options.addLineBreaks = !!options.addLineBreaks;
+	options.splitChains = !!options.splitChains;
+	options.convertLines = !!options.convertLines;
 	options.convertSmooth = !!options.convertSmooth;
 	options.convertQuadraticToCubic = !!options.convertQuadraticToCubic;
 	options.convertArcToCubic = !!options.convertArcToCubic;
-	options.addLineBreaks = !!options.addLineBreaks;
 	options.returnObject = !!options.returnObject;
 
 	return options;
@@ -53,19 +57,15 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	// Take the command string and split into an array containing 
 	// command objects, comprised of the command letter and parameters
 	let commands = chunkCommands(dAttribute);
-	log(`After chunkCommands`);
-	log(commands);
 
 	// Convert relative commands mlhvcsqtaz to absolute commands MLHVCSQTAZ
 	commands = convertToAbsolute(commands);
-	log(`After convertToAbsolute`);
-	log(commands);
 
 	// Convert chains of parameters to individual command / parameter pairs
-	commands = splitChainParameters(commands);
+	if(options.splitChains) commands = splitChainParameters(commands);
 
 	// Convert Horizontal and Vertical LineTo commands to regular LineTo commands
-	commands = convertLineTo(commands);
+	if(options.convertLines) commands = convertLineTo(commands);
 
 	// Convert Smooth Cubic Bézier commands S to regular Cubic Bézier commands C
 	// Convert Smooth Quadratic Bézier commands T to regular Quadratic Bézier commands Q
@@ -91,24 +91,24 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	 */
 
 	function chunkCommands(dAttribute){
-		log(`Start chunkCommands`);
+		// log(`Start chunkCommands`);
 		let data = dAttribute.replace(/\s+/g, ',');
 		let result = [];
 		let commandStart = false;
-		log(data);
+		// log(data);
 
 		// Find the first valid command
 		for(let j=0; j<data.length; j++) {
 			if(isCommand(data.charAt(j))) {
 				commandStart = j;
-				log(`First valid command ${data.charAt(j)} found at ${j}`);
+				// log(`First valid command ${data.charAt(j)} found at ${j}`);
 				break;
 			}
 		}
 		
 		if(commandStart === false) {
 			// No valid commands found
-			log(`No valid commands found, returning Z`);
+			// log(`No valid commands found, returning Z`);
 			return [{type: 'Z'}];
 		}
 
@@ -157,7 +157,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 
 
 	function convertToAbsolute(commands){
-		log(`Start convertToAbsolute: ${commands.length} command chunks`);
+		// log(`Start convertToAbsolute: ${commands.length} command chunks`);
 		let result = [];
 		let newCommand = {};
 		let i;
@@ -169,7 +169,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 
 		for(let c=0; c<commands.length; c++){
 			currentCommand = commands[c];
-			log(`... doing command ${currentCommand.type}`);
+			// log(`... doing command ${currentCommand.type}`);
 
 			if(currentCommand.type === 'm' || currentCommand.type === 'l'){
 				// MoveTo and LineTo
@@ -312,7 +312,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 					type: 'A',
 					parameters: []
 				};
-				log(`Arc to relative parameters\n${currentCommand.parameters}`);
+				// log(`Arc to relative parameters\n${currentCommand.parameters}`);
 				for(i=0; i<currentCommand.parameters.length; i+=7) {
 					newCommand.parameters.push(currentCommand.parameters[i+0]);
 					newCommand.parameters.push(currentCommand.parameters[i+1]);
@@ -356,8 +356,70 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 
 
 	function splitChainParameters(commands){
+		let result = [];
+		let command;
+		let p;
 
-		return commands;
+		for(let i=0; i<commands.length; i++){
+			command = commands[i];
+			if(command.type){
+				switch(command.type) {
+					case 'h':
+					case 'v':
+					case 'm':
+					case 'l':
+					case 't':
+					case 'q':
+					case 's':
+					case 'c':
+					case 'a':
+						console.warn(`Breaking chains is only possible on absolute commands.\nSkipping command ${command.type}!`);
+						result.push(command);
+						break;
+
+					case 'Z':
+					case 'z':
+						result.push({type: 'Z'});
+						break;
+
+					case 'H':
+					case 'V':
+						for(p=0; p<command.parameters.length; p+=2) {
+							result.push({type: command.type, parameters: [command.parameters[p]]});
+						}
+						break;
+
+					case 'M':
+					case 'L':
+					case 'T':
+						for(p=0; p<command.parameters.length; p+=2) {
+							result.push({type: command.type, parameters: [command.parameters[p], command.parameters[p+1]]});
+						}
+						break;
+
+					case 'Q':
+					case 'S':
+						for(p=0; p<command.parameters.length; p+=4) {
+							result.push({type: command.type, parameters: [command.parameters[p], command.parameters[p+1], command.parameters[p+2], command.parameters[p+3]]});
+						}
+						break;
+					
+					case 'C':
+						for(p=0; p<command.parameters.length; p+=6) {
+							result.push({type: command.type, parameters: [command.parameters[p], command.parameters[p+1], command.parameters[p+2], command.parameters[p+3], command.parameters[p+4], command.parameters[p+5]]});
+						}
+						break;
+
+					case 'A':
+						for(p=0; p<command.parameters.length; p+=7) {
+							result.push({type: command.type, parameters: [command.parameters[p], command.parameters[p+1], command.parameters[p+2], command.parameters[p+3], command.parameters[p+4], command.parameters[p+5], command.parameters[p+6]]});
+						}
+						break;
+				}
+			}
+		}
+
+		return result;
 	}
 
 	function convertLineTo(commands){
