@@ -44,6 +44,7 @@
 
 			for(let j=0; j<files.length; j++){
 				document.getElementById(`pre-img-${files[j]}`).addEventListener("load", function(){
+					console.log(`\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n${files[j]}\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
 					let preSource = this.contentDocument.children[0].outerHTML;
 					document.getElementById(`pre-src-${files[j]}`).innerHTML = preSource;
 					fileContent[files[j]] = preSource;

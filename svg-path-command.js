@@ -165,22 +165,21 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		let currentY = 0;
 		let newX = 0;
 		let newY = 0;
-		let currentCommand;
+		let command;
 
 		for(let c=0; c<commands.length; c++){
-			currentCommand = commands[c];
-			// log(`... doing command ${currentCommand.type}`);
+			command = commands[c];
 
-			if(currentCommand.type === 'm' || currentCommand.type === 'l'){
+			if(command.type === 'm' || command.type === 'l'){
 				// MoveTo and LineTo
 				newCommand = {
-					type: (currentCommand.type === 'm' ? 'M' : 'L'),
+					type: (command.type === 'm' ? 'M' : 'L'),
 					parameters: []
 				};
 
-				for(i=0; i<currentCommand.parameters.length; i+=2) {
-					newX = (currentCommand.parameters[i+0] + currentX);
-					newY = (currentCommand.parameters[i+1] + currentY);
+				for(i=0; i<command.parameters.length; i+=2) {
+					newX = (command.parameters[i+0] + currentX);
+					newY = (command.parameters[i+1] + currentY);
 					newCommand.parameters.push(newX);
 					newCommand.parameters.push(newY);
 					currentX = newX;
@@ -190,15 +189,15 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				result.push(newCommand);
 
 				
-			} else if(currentCommand.type === 'h'){
+			} else if(command.type === 'h'){
 				// Horizontal line to
 				newCommand = {
 					type: 'H',
 					parameters: []
 				};
 
-				for(i=0; i<currentCommand.parameters.length; i++) {
-					newX = currentCommand.parameters[i] + currentX;
+				for(i=0; i<command.parameters.length; i++) {
+					newX = command.parameters[i] + currentX;
 					newCommand.parameters.push(newX);
 					currentX = newX;
 				}
@@ -206,15 +205,15 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				result.push(newCommand);
 
 
-			} else if(currentCommand.type === 'v'){
+			} else if(command.type === 'v'){
 				// Horizontal line to
 				newCommand = {
 					type: 'V',
 					parameters: []
 				};
 
-				for(i=0; i<currentCommand.parameters.length; i++) {
-					newY = currentCommand.parameters[i] + currentY;
+				for(i=0; i<command.parameters.length; i++) {
+					newY = command.parameters[i] + currentY;
 					newCommand.parameters.push(newY);
 					currentY = newY;
 				}
@@ -222,20 +221,20 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				result.push(newCommand);
 
 				
-			} else if(currentCommand.type === 'c'){
+			} else if(command.type === 'c'){
 				// Cubic Bezier
 				newCommand = {
 					type: 'C',
 					parameters: []
 				};
 
-				for(i=0; i<currentCommand.parameters.length; i+=6) {
-					newCommand.parameters.push(currentCommand.parameters[i+0] + currentX);
-					newCommand.parameters.push(currentCommand.parameters[i+1] + currentY);
-					newCommand.parameters.push(currentCommand.parameters[i+2] + currentX);
-					newCommand.parameters.push(currentCommand.parameters[i+3] + currentY);
-					newX = currentCommand.parameters[i+4] + currentX;
-					newY = currentCommand.parameters[i+5] + currentY;
+				for(i=0; i<command.parameters.length; i+=6) {
+					newCommand.parameters.push(command.parameters[i+0] + currentX);
+					newCommand.parameters.push(command.parameters[i+1] + currentY);
+					newCommand.parameters.push(command.parameters[i+2] + currentX);
+					newCommand.parameters.push(command.parameters[i+3] + currentY);
+					newX = command.parameters[i+4] + currentX;
+					newY = command.parameters[i+5] + currentY;
 					newCommand.parameters.push(newX);
 					newCommand.parameters.push(newY);
 					currentX = newX;
@@ -245,18 +244,18 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				result.push(newCommand);
 
 
-			} else if(currentCommand.type === 's'){
+			} else if(command.type === 's'){
 				// Smooth Cubic Bezier
 				newCommand = {
 					type: 'S',
 					parameters: []
 				};
 
-				for(i=0; i<currentCommand.parameters.length; i+=4) {
-					newCommand.parameters.push(currentCommand.parameters[i+0] + currentX);
-					newCommand.parameters.push(currentCommand.parameters[i+1] + currentY);
-					newX = currentCommand.parameters[i+2] + currentX;
-					newY = currentCommand.parameters[i+3] + currentY;
+				for(i=0; i<command.parameters.length; i+=4) {
+					newCommand.parameters.push(command.parameters[i+0] + currentX);
+					newCommand.parameters.push(command.parameters[i+1] + currentY);
+					newX = command.parameters[i+2] + currentX;
+					newY = command.parameters[i+3] + currentY;
 					newCommand.parameters.push(newX);
 					newCommand.parameters.push(newY);
 					currentX = newX;
@@ -266,18 +265,18 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				result.push(newCommand);
 
 
-			} else if(currentCommand.type === 'q'){
+			} else if(command.type === 'q'){
 				// Quadratic Bezier
 				newCommand = {
 					type: 'Q',
 					parameters: []
 				};
 
-				for(i=0; i<currentCommand.parameters.length; i+=4) {
-					newCommand.parameters.push(currentCommand.parameters[i+0] + currentX);
-					newCommand.parameters.push(currentCommand.parameters[i+1] + currentY);
-					newX = currentCommand.parameters[i+2] + currentX;
-					newY = currentCommand.parameters[i+3] + currentY;
+				for(i=0; i<command.parameters.length; i+=4) {
+					newCommand.parameters.push(command.parameters[i+0] + currentX);
+					newCommand.parameters.push(command.parameters[i+1] + currentY);
+					newX = command.parameters[i+2] + currentX;
+					newY = command.parameters[i+3] + currentY;
 					newCommand.parameters.push(newX);
 					newCommand.parameters.push(newY);
 					currentX = newX;
@@ -287,16 +286,16 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				result.push(newCommand);
 
 
-			} else if(currentCommand.type === 't'){
+			} else if(command.type === 't'){
 				// Smooth Quadratic Bezier
 				newCommand = {
 					type: 'T',
 					parameters: []
 				};
 
-				for(i=0; i<currentCommand.parameters.length; i+=2) {
-					newX = currentCommand.parameters[i+0] + currentX;
-					newY = currentCommand.parameters[i+1] + currentY;
+				for(i=0; i<command.parameters.length; i+=2) {
+					newX = command.parameters[i+0] + currentX;
+					newY = command.parameters[i+1] + currentY;
 					newCommand.parameters.push(newX);
 					newCommand.parameters.push(newY);
 					currentX = newX;
@@ -306,21 +305,21 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				result.push(newCommand);
 
 
-			} else if(currentCommand.type === 'a'){
+			} else if(command.type === 'a'){
 				// Arc to
 				newCommand = {
 					type: 'A',
 					parameters: []
 				};
-				// log(`Arc to relative parameters\n${currentCommand.parameters}`);
-				for(i=0; i<currentCommand.parameters.length; i+=7) {
-					newCommand.parameters.push(currentCommand.parameters[i+0]);
-					newCommand.parameters.push(currentCommand.parameters[i+1]);
-					newCommand.parameters.push(currentCommand.parameters[i+2]);
-					newCommand.parameters.push(currentCommand.parameters[i+3]);
-					newCommand.parameters.push(currentCommand.parameters[i+4]);
-					newX = currentCommand.parameters[i+5] + currentX;
-					newY = currentCommand.parameters[i+6] + currentY;
+				// log(`Arc to relative parameters\n${command.parameters}`);
+				for(i=0; i<command.parameters.length; i+=7) {
+					newCommand.parameters.push(command.parameters[i+0]);
+					newCommand.parameters.push(command.parameters[i+1]);
+					newCommand.parameters.push(command.parameters[i+2]);
+					newCommand.parameters.push(command.parameters[i+3]);
+					newCommand.parameters.push(command.parameters[i+4]);
+					newX = command.parameters[i+5] + currentX;
+					newY = command.parameters[i+6] + currentY;
 					newCommand.parameters.push(newX);
 					newCommand.parameters.push(newY);
 					currentX = newX;
@@ -330,22 +329,22 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				result.push(newCommand);
 
 
-			} else if(currentCommand.type === 'z'){
+			} else if(command.type === 'z'){
 				// End path
 				result.push({type: 'Z'});
 
 
 			} else {
 				// command is absolute, push it
-				result.push(currentCommand);
+				result.push(command);
 	
-				if (currentCommand.type === 'H') {
-					currentX = currentCommand.parameters[currentCommand.parameters.length-1];
-				} else if(currentCommand.type === 'V'){
-					currentY = currentCommand.parameters[currentCommand.parameters.length-1];
-				} else if (currentCommand.type !== 'Z') {
-					currentX = currentCommand.parameters[currentCommand.parameters.length-2];
-					currentY = currentCommand.parameters[currentCommand.parameters.length-1];
+				if (command.type === 'H') {
+					currentX = command.parameters[command.parameters.length-1];
+				} else if(command.type === 'V'){
+					currentY = command.parameters[command.parameters.length-1];
+				} else if (command.type !== 'Z') {
+					currentX = command.parameters[command.parameters.length-2];
+					currentY = command.parameters[command.parameters.length-1];
 				}
 			}
 
@@ -360,8 +359,8 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		let command;
 		let p;
 
-		for(let i=0; i<commands.length; i++){
-			command = commands[i];
+		for(let c=0; c<commands.length; c++){
+			command = commands[c];
 			if(command.type){
 				switch(command.type) {
 					case 'h':
@@ -422,9 +421,46 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		return result;
 	}
 
-	function convertLineTo(commands){
 
-		return commands;
+	function convertLineTo(commands){
+		// log(`Start convertLineTo`);
+		let result = [];
+		let command;
+		let currentPoint = {x: 0, y: 0};
+		let p;
+
+		for(let c=0; c<commands.length; c++){
+			command = commands[c];
+			// log(`doing ${command.type} [${command.parameters.join()}]`);
+
+			if(command.type === 'h'){
+				console.warn(`Converting Horizontal and Vertical commands is only possible on absolute commands.\nSkipping command h!`);
+				result.push(command);
+				
+			} else if(command.type === 'v'){
+				console.warn(`Converting Horizontal and Vertical commands is only possible on absolute commands.\nSkipping command v!`);
+				result.push(command);
+			
+			} else if (command.type === 'H') {
+				for(p=0; p<command.parameters.length; p++){
+					result.push({type: 'L', parameters: [command.parameters[p], currentPoint.y]});
+				}
+			
+			} else if (command.type === 'V') {
+				for(p=0; p<command.parameters.length; p++){
+					result.push({type: 'L', parameters: [currentPoint.x, command.parameters[p]]});
+				}
+
+			} else {
+				result.push(command);
+			}
+
+			// log(`pushed ${result[result.length-1].type} [${result[result.length-1].parameters.join()}]`);
+			currentPoint = getNewEndPoint(currentPoint, command);
+			// log(`new end point ${currentPoint.x}, ${currentPoint.y}`);
+		}
+
+		return result;
 	}
 
 	function convertSmoothBeziers(commands){
@@ -525,6 +561,86 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	/*
 	 * Helper Functions
 	 */
+
+	function getNewEndPoint(currentPoint, command){
+		
+		let returnPoint = {
+			x: currentPoint.x || 0,
+			y: currentPoint.y || 0
+		};
+		let p;
+
+		switch(command.type) {
+			case 'Z':
+			case 'z':
+				break;
+			
+			case 'H':
+				returnPoint.x = command.parameters[command.parameters.length-1];
+				break;
+
+			case 'V':
+				returnPoint.y = command.parameters[command.parameters.length-1];
+				break;
+
+			case 'M':
+			case 'L':
+			case 'C':
+			case 'S':
+			case 'A':
+			case 'Q':
+			case 'T':
+				returnPoint.x = command.parameters[command.parameters.length-2];
+				returnPoint.y = command.parameters[command.parameters.length-1];
+				break;
+			
+			case 'h':
+				for(p=0; p<command.parameters.length; p++){
+					returnPoint.x += command.parameters[p];
+				}
+				break;
+				
+			case 'v':
+				for(p=0; p<command.parameters.length; p++){
+					returnPoint.y += command.parameters[p];
+				}
+				break;
+
+			case 'm':
+			case 'l':
+			case 't':
+				for(p=0; p<command.parameters.length; p+=2){
+					returnPoint.x += command.parameters[p+0];
+					returnPoint.y += command.parameters[p+1];
+				}
+				break;
+
+			case 'q':
+			case 's':
+				for(p=0; p<command.parameters.length; p+=4){
+					returnPoint.x += command.parameters[p+2];
+					returnPoint.y += command.parameters[p+3];
+				}
+				break;
+
+			case 'c':
+				for(p=0; p<command.parameters.length; p+=6){
+					returnPoint.x += command.parameters[p+4];
+					returnPoint.y += command.parameters[p+5];
+				}
+				break;
+
+			case 'a':
+				for(p=0; p<command.parameters.length; p+=7){
+					returnPoint.x += command.parameters[p+5];
+					returnPoint.y += command.parameters[p+6];
+				}
+				break;
+		}
+
+		return returnPoint;
+	}
+
 	function isCommand(c){
 		// log(`isCommand passed ${c}`);
 		if('MmLlCcSsZzHhVvAaQqTt'.indexOf(c) > -1) return true;
