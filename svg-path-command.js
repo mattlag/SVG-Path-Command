@@ -161,10 +161,8 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		let result = [];
 		let newCommand = {};
 		let i;
-		let currentX = 0;
-		let currentY = 0;
-		let newX = 0;
-		let newY = 0;
+		let currentPoint = {x: 0, y: 0};
+		let newPoint = {x: 0, y: 0};
 		let command;
 
 		for(let c=0; c<commands.length; c++){
@@ -178,12 +176,12 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				};
 
 				for(i=0; i<command.parameters.length; i+=2) {
-					newX = (command.parameters[i+0] + currentX);
-					newY = (command.parameters[i+1] + currentY);
-					newCommand.parameters.push(newX);
-					newCommand.parameters.push(newY);
-					currentX = newX;
-					currentY = newY;
+					newPoint.x = (command.parameters[i+0] + currentPoint.x);
+					newPoint.y = (command.parameters[i+1] + currentPoint.y);
+					newCommand.parameters.push(newPoint.x);
+					newCommand.parameters.push(newPoint.y);
+					currentPoint.x = newPoint.x;
+					currentPoint.y = newPoint.y;
 				}
 
 				result.push(newCommand);
@@ -197,9 +195,9 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				};
 
 				for(i=0; i<command.parameters.length; i++) {
-					newX = command.parameters[i] + currentX;
-					newCommand.parameters.push(newX);
-					currentX = newX;
+					newPoint.x = command.parameters[i] + currentPoint.x;
+					newCommand.parameters.push(newPoint.x);
+					currentPoint.x = newPoint.x;
 				}
 
 				result.push(newCommand);
@@ -213,9 +211,9 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				};
 
 				for(i=0; i<command.parameters.length; i++) {
-					newY = command.parameters[i] + currentY;
-					newCommand.parameters.push(newY);
-					currentY = newY;
+					newPoint.y = command.parameters[i] + currentPoint.y;
+					newCommand.parameters.push(newPoint.y);
+					currentPoint.y = newPoint.y;
 				}
 
 				result.push(newCommand);
@@ -229,16 +227,16 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				};
 
 				for(i=0; i<command.parameters.length; i+=6) {
-					newCommand.parameters.push(command.parameters[i+0] + currentX);
-					newCommand.parameters.push(command.parameters[i+1] + currentY);
-					newCommand.parameters.push(command.parameters[i+2] + currentX);
-					newCommand.parameters.push(command.parameters[i+3] + currentY);
-					newX = command.parameters[i+4] + currentX;
-					newY = command.parameters[i+5] + currentY;
-					newCommand.parameters.push(newX);
-					newCommand.parameters.push(newY);
-					currentX = newX;
-					currentY = newY;
+					newCommand.parameters.push(command.parameters[i+0] + currentPoint.x);
+					newCommand.parameters.push(command.parameters[i+1] + currentPoint.y);
+					newCommand.parameters.push(command.parameters[i+2] + currentPoint.x);
+					newCommand.parameters.push(command.parameters[i+3] + currentPoint.y);
+					newPoint.x = command.parameters[i+4] + currentPoint.x;
+					newPoint.y = command.parameters[i+5] + currentPoint.y;
+					newCommand.parameters.push(newPoint.x);
+					newCommand.parameters.push(newPoint.y);
+					currentPoint.x = newPoint.x;
+					currentPoint.y = newPoint.y;
 				}
 
 				result.push(newCommand);
@@ -252,14 +250,14 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				};
 
 				for(i=0; i<command.parameters.length; i+=4) {
-					newCommand.parameters.push(command.parameters[i+0] + currentX);
-					newCommand.parameters.push(command.parameters[i+1] + currentY);
-					newX = command.parameters[i+2] + currentX;
-					newY = command.parameters[i+3] + currentY;
-					newCommand.parameters.push(newX);
-					newCommand.parameters.push(newY);
-					currentX = newX;
-					currentY = newY;
+					newCommand.parameters.push(command.parameters[i+0] + currentPoint.x);
+					newCommand.parameters.push(command.parameters[i+1] + currentPoint.y);
+					newPoint.x = command.parameters[i+2] + currentPoint.x;
+					newPoint.y = command.parameters[i+3] + currentPoint.y;
+					newCommand.parameters.push(newPoint.x);
+					newCommand.parameters.push(newPoint.y);
+					currentPoint.x = newPoint.x;
+					currentPoint.y = newPoint.y;
 				}
 
 				result.push(newCommand);
@@ -273,14 +271,14 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				};
 
 				for(i=0; i<command.parameters.length; i+=4) {
-					newCommand.parameters.push(command.parameters[i+0] + currentX);
-					newCommand.parameters.push(command.parameters[i+1] + currentY);
-					newX = command.parameters[i+2] + currentX;
-					newY = command.parameters[i+3] + currentY;
-					newCommand.parameters.push(newX);
-					newCommand.parameters.push(newY);
-					currentX = newX;
-					currentY = newY;
+					newCommand.parameters.push(command.parameters[i+0] + currentPoint.x);
+					newCommand.parameters.push(command.parameters[i+1] + currentPoint.y);
+					newPoint.x = command.parameters[i+2] + currentPoint.x;
+					newPoint.y = command.parameters[i+3] + currentPoint.y;
+					newCommand.parameters.push(newPoint.x);
+					newCommand.parameters.push(newPoint.y);
+					currentPoint.x = newPoint.x;
+					currentPoint.y = newPoint.y;
 				}
 
 				result.push(newCommand);
@@ -294,12 +292,12 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 				};
 
 				for(i=0; i<command.parameters.length; i+=2) {
-					newX = command.parameters[i+0] + currentX;
-					newY = command.parameters[i+1] + currentY;
-					newCommand.parameters.push(newX);
-					newCommand.parameters.push(newY);
-					currentX = newX;
-					currentY = newY;
+					newPoint.x = command.parameters[i+0] + currentPoint.x;
+					newPoint.y = command.parameters[i+1] + currentPoint.y;
+					newCommand.parameters.push(newPoint.x);
+					newCommand.parameters.push(newPoint.y);
+					currentPoint.x = newPoint.x;
+					currentPoint.y = newPoint.y;
 				}
 
 				result.push(newCommand);
@@ -318,12 +316,12 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 					newCommand.parameters.push(command.parameters[i+2]);
 					newCommand.parameters.push(command.parameters[i+3]);
 					newCommand.parameters.push(command.parameters[i+4]);
-					newX = command.parameters[i+5] + currentX;
-					newY = command.parameters[i+6] + currentY;
-					newCommand.parameters.push(newX);
-					newCommand.parameters.push(newY);
-					currentX = newX;
-					currentY = newY;
+					newPoint.x = command.parameters[i+5] + currentPoint.x;
+					newPoint.y = command.parameters[i+6] + currentPoint.y;
+					newCommand.parameters.push(newPoint.x);
+					newCommand.parameters.push(newPoint.y);
+					currentPoint.x = newPoint.x;
+					currentPoint.y = newPoint.y;
 				}
 
 				result.push(newCommand);
@@ -337,15 +335,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 			} else {
 				// command is absolute, push it
 				result.push(command);
-	
-				if (command.type === 'H') {
-					currentX = command.parameters[command.parameters.length-1];
-				} else if(command.type === 'V'){
-					currentY = command.parameters[command.parameters.length-1];
-				} else if (command.type !== 'Z') {
-					currentX = command.parameters[command.parameters.length-2];
-					currentY = command.parameters[command.parameters.length-1];
-				}
+				currentPoint = getNewEndPoint(currentPoint, command);
 			}
 
 		}
