@@ -379,6 +379,12 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 						break;
 
 					case 'M':
+						// Chained MoveTo commands are treated like LineTo commands
+						for(p=0; p<command.parameters.length; p+=2) {
+							result.push({type: (p<2? 'M' : 'L'), parameters: [command.parameters[p], command.parameters[p+1]]});
+						}
+						break;
+
 					case 'L':
 					case 'T':
 						for(p=0; p<command.parameters.length; p+=2) {
