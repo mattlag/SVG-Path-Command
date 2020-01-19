@@ -92,9 +92,20 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 
 	function chunkCommands(dAttribute){
 		// log(`Start chunkCommands`);
-		let data = dAttribute.replace(/\s+/g, ',');
 		let result = [];
 		let commandStart = false;
+
+		// Clean up whitespace
+		let data = dAttribute.replace(/\s+/g, ',');
+		
+		// Clean up negative numbers, and scientific notation numbers
+		data = data.replace(/e-/g, '~~~');
+		data = data.replace(/-/g, ',-');
+		data = data.replace(/~~~/g, 'e-');
+
+		// Clean up commas
+		data = data.replace(/,+/g,',');
+
 		// log(data);
 
 		// Find the first valid command
@@ -460,8 +471,74 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	}
 
 	function convertSmoothBeziers(commands){
+		// log(`Start convertSmoothBeziers`);
+		let result = [];
+		let command;
+		let currentPoint = {x: 0, y: 0};
+		let previousHandle = {x: 0, y: 0};
+		let smoothHandle = {x: 0, y: 0};
+		let previousResult;
 
-		return commands;
+		for(let c=0; c<commands.length; c++){
+			command = commands[c];
+
+			if(command.type === 's' || command.type === 't'){
+				console.warn(`Converting smooth Bezier curve commands is only possible on absolute commands.\nSkipping command ${command.type}!`);
+				result.push(command);
+
+			} else if (command.type === 'S' || command.type === 'T') {
+				previousResult = result.length > 1? result[result.length-1] : false;
+
+				// This allows for using a smooth cubic after a quadratic,
+				// or a smooth quadratic after a cubic... which may not be standard
+				if(previousResult && previousResult.type === 'C'){
+					previousHandle.x = previousResult.parameters[2];
+					previousHandle.y = previousResult.parameters[3];
+				} else if(previousResult && previousResult.type === 'Q'){
+					previousHandle.x = previousResult.parameters[0];
+					previousHandle.y = previousResult.parameters[1];
+				} else {
+					previousHandle.x = currentPoint.x;
+					previousHandle.y = currentPoint.y;
+				}
+
+				smoothHandle = {
+					x : ((currentPoint.x - previousHandle.x) + currentPoint.x),
+					y : ((currentPoint.y - previousHandle.y) + currentPoint.y)
+				};
+
+				if(command.type === 'S') {
+					result.push({
+						type: 'C',
+						parameters: [
+							smoothHandle.x,
+							smoothHandle.y,
+							command.parameters[0],
+							command.parameters[1],
+							command.parameters[2],
+							command.parameters[3]
+						]
+					});
+				} else if (command.type === 'T'){
+					result.push({
+						type: 'Q',
+						parameters: [
+							smoothHandle.x,
+							smoothHandle.y,
+							command.parameters[0],
+							command.parameters[1]
+						]
+					});
+				}
+				
+			} else {
+				result.push(command);
+			}
+
+			currentPoint = getNewEndPoint(currentPoint, command);
+		}
+		
+		return result;
 	}
 
 	function convertQuadraticBeziers(commands){
