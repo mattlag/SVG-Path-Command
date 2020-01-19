@@ -75,7 +75,8 @@
 				convertLines: document.getElementById('check-convertLines').checked,
 				convertSmooth: document.getElementById('check-convertSmooth').checked,
 				convertQuadraticToCubic: document.getElementById('check-convertQuadraticToCubic').checked,
-				convertArcToCubic: document.getElementById('check-convertArcToCubic').checked
+				convertArcToCubic: document.getElementById('check-convertArcToCubic').checked,
+				correctFloatingPoint: document.getElementById('check-correctFloatingPoint').checked
 			};
 		}
 	</script>
@@ -135,6 +136,7 @@
 		<input type="checkbox" checked id="check-convertSmooth" onchange="refresh();">&nbsp;<label for="check-convertSmooth">convertSmooth</label>&emsp;
 		<input type="checkbox" checked id="check-convertQuadraticToCubic" onchange="refresh();">&nbsp;<label for="check-convertQuadraticToCubic">convertQuadraticToCubic</label>&emsp;
 		<input type="checkbox" checked id="check-convertArcToCubic" onchange="refresh();">&nbsp;<label for="check-convertArcToCubic">convertArcToCubic</label>&emsp;
+		<input type="checkbox" checked id="check-correctFloatingPoint" onchange="refresh();">&nbsp;<label for="check-correctFloatingPoint">correctFloatingPoint</label>&emsp;
 	</div>
 	<div id="target"></div>
 </body>

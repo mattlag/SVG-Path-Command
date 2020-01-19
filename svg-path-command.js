@@ -12,6 +12,8 @@
  * @param {boolean} options.convertArcToCubic - approximate the Arc with cubic Bézier paths
  * @param {boolean} options.returnObject - return an object representation of the commands, as 
  * 								opposed to a single string representing the d attribute value
+ * @param {boolean} options.correctFloatingPoint - rounds numbers that appear to be the result of bad 
+ * 								floating point math
  */
 const validateOptions = function(options){
 	options.addLineBreaks = !!options.addLineBreaks;
@@ -21,6 +23,7 @@ const validateOptions = function(options){
 	options.convertQuadraticToCubic = !!options.convertQuadraticToCubic;
 	options.convertArcToCubic = !!options.convertArcToCubic;
 	options.returnObject = !!options.returnObject;
+	options.correctFloatingPoint = !!options.correctFloatingPoint;
 
 	return options;
 };
@@ -470,6 +473,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		return result;
 	}
 
+
 	function convertSmoothBeziers(commands){
 		// log(`Start convertSmoothBeziers`);
 		let result = [];
@@ -575,7 +579,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 					case 'V':
 					case 'v':
 						for(p=0; p<command.parameters.length; p+=2) {
-							result += ` ${command.parameters[p]}`;
+							result += ` ${param(p)}`;
 						}
 						result += '  ';
 						break;
@@ -588,7 +592,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 					case 't':
 						for(p=0; p<command.parameters.length; p+=2) {
 							if(addLineBreaks && p > 1) result += '\n\t ';
-							result += ` ${command.parameters[p]},${command.parameters[p+1]}`;
+							result += ` ${param(p)},${param(p+1)}`;
 						}
 						result += '  ';
 						break;
@@ -599,7 +603,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 					case 's':
 						for(p=0; p<command.parameters.length; p+=4) {
 							if(addLineBreaks && p > 1) result += '\n\t ';
-							result += ` ${command.parameters[p]},${command.parameters[p+1]} ${command.parameters[p+2]},${command.parameters[p+3]}`;
+							result += ` ${param(p)},${param(p+1)} ${param(p+2)},${param(p+3)}`;
 						}
 						result += '  ';
 						break;
@@ -608,7 +612,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 					case 'c':
 						for(p=0; p<command.parameters.length; p+=6) {
 							if(addLineBreaks && p > 1) result += '\n\t ';
-							result += ` ${command.parameters[p]},${command.parameters[p+1]} ${command.parameters[p+2]},${command.parameters[p+3]} ${command.parameters[p+4]},${command.parameters[p+5]}`;
+							result += ` ${param(p)},${param(p+1)} ${param(p+2)},${param(p+3)} ${param(p+4)},${param(p+5)}`;
 						}
 						result += '  ';
 						break;
@@ -617,12 +621,36 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 					case 'a':
 						for(p=0; p<command.parameters.length; p+=7) {
 							if(addLineBreaks && p > 1) result += '\n\t ';
-							result += ` ${command.parameters[p]} ${command.parameters[p+1]} ${command.parameters[p+2]} ${command.parameters[p+3]} ${command.parameters[p+4]} ${command.parameters[p+5]},${command.parameters[p+6]}`;
+							result += ` ${param(p)} ${param(p+1)} ${param(p+2)} ${param(p+3)} ${param(p+4)} ${param(p+5)},${param(p+6)}`;
 						}
 						result += '  ';
 						break;
 				}
 			}
+		}
+
+		function param(num){
+			let p = command.parameters[num];
+			return options.correctFloatingPoint? numSan(p) : p;
+		}
+
+		function numSan(num){
+			let dec = num.toString().split('.');
+
+			if(dec[1]){
+				let pos = -1;
+
+				if(dec[1].indexOf('999999') > -1) {
+					pos = dec[1].indexOf('999999');
+				}
+				if(dec[1].indexOf('000000') > -1) {
+					pos = dec[1].indexOf('000000');
+				}
+				
+				if(pos > -1) return num.toFixed(pos);
+			}
+
+			return num;
 		}
 
 		result = result.trim();
