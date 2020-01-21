@@ -546,8 +546,47 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	}
 
 	function convertQuadraticBeziers(commands){
+		let result = [];
+		let command;
+		let currentPoint = {x: 0, y: 0};
+		let q0x;
+		let q0y;
+		let q1x;
+		let q1y;
+		let q2x;
+		let q2y;
+		let c1x;
+		let c1y;
+		let c2x;
+		let c2y;
 
-		return commands;
+		for(let c=0; c<commands.length; c++){
+			command = commands[c];
+
+			if(command.type === 'Q'){
+				q0x = command.parameters[0];
+				q0y = command.parameters[1];
+				q1x = command.parameters[2];
+				q1y = command.parameters[3];
+				q2x = command.parameters[4];
+				q2y = command.parameters[5];
+
+				c1x = q0x+((2/3)*(q1x-q0x));
+				c1y = q0y+((2/3)*(q1y-q0y));
+
+				c2x = q2x+((2/3)*(q1x-q2x));
+				c2y = q2y+((2/3)*(q1y-q2y));
+
+				result.push({type: 'C', parameters: [c1x, c1y, c2x, c2y, q2x, q2y]});
+			
+			} else {
+				result.push(command);
+			} 
+
+			currentPoint = getNewEndPoint(currentPoint, command);
+		}
+
+		return result;
 	}
 
 	function convertArcs(commands){
