@@ -564,12 +564,12 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 			command = commands[c];
 
 			if(command.type === 'Q'){
-				q0x = command.parameters[0];
-				q0y = command.parameters[1];
-				q1x = command.parameters[2];
-				q1y = command.parameters[3];
-				q2x = command.parameters[4];
-				q2y = command.parameters[5];
+				q0x = currentPoint.x;
+				q0y = currentPoint.y;
+				q1x = command.parameters[0];
+				q1y = command.parameters[1];
+				q2x = command.parameters[2];
+				q2y = command.parameters[3];
 
 				c1x = q0x+((2/3)*(q1x-q0x));
 				c1y = q0y+((2/3)*(q1y-q0y));
