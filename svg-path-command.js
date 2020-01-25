@@ -596,42 +596,48 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		let convertedBeziers = [];
 		let currentPoint = {x: 0, y: 0};
 		let command;
+		let p;
+		let i;
 
 		for(let c=0; c<commands.length; c++){
 			command = commands[c];
-
+			
 			if(command.type === 'A') {
-				convertedBeziers = convertArcToCommandToBezier(
-					currentPoint.x, currentPoint.y,
-					command.parameters[0], command.parameters[1],
-					command.parameters[2], 
-					command.parameters[3], command.parameters[4],
-					command.parameters[5], command.parameters[6],
-					false
-				);
+				for(p=0; p<command.parameters.length; p+=7){
+					convertedBeziers = convertArcToCommandToBezier(
+						currentPoint.x, currentPoint.y,
+						command.parameters[p+0], command.parameters[p+1],
+						command.parameters[p+2], 
+						command.parameters[p+3], command.parameters[p+4],
+						command.parameters[p+5], command.parameters[p+6],
+						false
+					);
 
-				log(`Converted Beziers\n${convertedBeziers}`);
+					log(`Converted Beziers\n${convertedBeziers}`);
 
-				if(options.splitChains) {
-					for(let i=0; i<convertedBeziers.length; i+=6) {
-						result.push({
-							type: 'C',
-							parameters: [
-								convertedBeziers[i+0], convertedBeziers[i+1],
-								convertedBeziers[i+2], convertedBeziers[i+3],
-								convertedBeziers[i+4], convertedBeziers[i+5]
-							]
-						});
+					if(options.splitChains) {
+						for(let i=0; i<convertedBeziers.length; i+=6) {
+							result.push({
+								type: 'C',
+								parameters: [
+									convertedBeziers[i+0], convertedBeziers[i+1],
+									convertedBeziers[i+2], convertedBeziers[i+3],
+									convertedBeziers[i+4], convertedBeziers[i+5]
+								]
+							});
+						}
+					} else {
+						result.push({type: 'C', parameters: convertedBeziers});
 					}
-				} else {
-					result.push({type: 'C', parameters: convertedBeziers});
-				}
 
+					currentPoint = {x: convertedBeziers[convertedBeziers.length-2], y: convertedBeziers[convertedBeziers.length-1]};
+				}
+				
 			} else {
 				result.push(command);
+				currentPoint = getNewEndPoint(currentPoint, command);
 			}
 
-			currentPoint = getNewEndPoint(currentPoint, command);
 		}
 
 		return result;
@@ -1082,8 +1088,8 @@ const convertSVGDocument = function(document = '', options = {}) {
 	
 		let parsererror = XMLdoc.getElementsByTagName('parsererror');
 		if (parsererror.length) {
-			let msgcon = XMLdoc.getElementsByTagName('div')[0].innerHTML;
-			XMLerror = new SyntaxError(trim(msgcon));
+			let msgcon = parsererror[0].innerHTML;
+			XMLerror = new SyntaxError(msgcon);
 			throw XMLerror;
 		}
 
