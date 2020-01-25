@@ -5,17 +5,17 @@ info: [svg/attribute/d](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribu
 
 ### Readability
  - Convert relative commands `mlhvcsqtaz` to absolute commands `MLHVCSQTAZ`
- - Convert chains of parameters to individual command / parameter pairs
  - Optionally add line breaks between each command
+ - Convert chains of parameters to individual command / parameter pairs
 
 ### Converting commands
  - Convert Horizontal and Vertical LineTo commands `V` or `H` to regular LineTo commands `L` with both x/y values
- - Convert Smooth Cubic Bézier commands `S` to regular Cubic Bézier commands `C`
- - Convert Smooth Quadratic Bézier commands `T` to regular Quadratic Bézier commands `Q`
+ - Convert Smooth Bézier commands `S` and `T` to regular Bézier commands `C` and `Q`
 
 ### Potentially lossy
- - Convert Quadratic Bézier `Q` commands to Cubic Bézier commands `C` (this may involve some approximation)
- - Convert Elliptical Arc commands `A` to Cubic Bézier commands `C` (this involves a fair amount of approximation)
+ - Convert Quadratic Bézier `Q` commands to Cubic Bézier commands `C` (this may involve a tiny bit of approximation)
+ - Convert Elliptical Arc commands `A` to Cubic Bézier commands `C` (this involves some approximation)
+ - Correct floating point math errors (decimals with a ton of 0s or 9s) by rounding them appropriately
 
 
 # Project
