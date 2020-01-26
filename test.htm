@@ -70,6 +70,7 @@
 
 		function getOptions(){
 			return {
+				convertAbsolute: document.getElementById('check-convertAbsolute').checked,
 				addLineBreaks: document.getElementById('check-addLineBreaks').checked,
 				splitChains: document.getElementById('check-splitChains').checked,
 				convertLines: document.getElementById('check-convertLines').checked,
@@ -130,6 +131,7 @@
 <body onload='main();'>
 	<div class="head">
 		<h1>SVG Path Command - Test</h1>
+		<input type="checkbox" checked id="check-convertAbsolute" onchange="refresh();">&nbsp;<label for="check-convertAbsolute">convertAbsolute</label>&emsp;
 		<input type="checkbox" checked id="check-addLineBreaks" onchange="refresh();">&nbsp;<label for="check-addLineBreaks">addLineBreaks</label>&emsp;
 		<input type="checkbox" checked id="check-splitChains" onchange="refresh();">&nbsp;<label for="check-splitChains">splitChains</label>&emsp;
 		<input type="checkbox" checked id="check-convertLines" onchange="refresh();">&nbsp;<label for="check-convertLines">convertLines</label>&emsp;

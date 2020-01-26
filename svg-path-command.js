@@ -3,6 +3,7 @@
  * These options apply to both convertSVGPathCommands and convertSVGDocument
  * Five options, off by default, for how the commands get processed
  * @param {object} options - conversion options
+ * @param {boolean} options.convertAbsolute - convert relative commands to absolute coordinates
  * @param {boolean} options.addLineBreaks - each command and it's parameters is on it's own line
  * @param {boolean} options.splitChains - chained parameters will be split to have their own command
  * @param {boolean} options.convertLines - changes H and V shorthand to regular LineTo notation
@@ -16,6 +17,7 @@
  * 								floating point math
  */
 const validateOptions = function(options){
+	options.convertAbsolute = !!options.convertAbsolute;
 	options.addLineBreaks = !!options.addLineBreaks;
 	options.splitChains = !!options.splitChains;
 	options.convertLines = !!options.convertLines;
@@ -62,7 +64,7 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 	let commands = chunkCommands(dAttribute);
 
 	// Convert relative commands mlhvcsqtaz to absolute commands MLHVCSQTAZ
-	commands = convertToAbsolute(commands);
+	if(options.convertAbsolute) commands = convertToAbsolute(commands);
 
 	// Convert chains of parameters to individual command / parameter pairs
 	if(options.splitChains) commands = splitChainParameters(commands);
@@ -367,19 +369,6 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 			command = commands[c];
 			if(command.type){
 				switch(command.type) {
-					case 'h':
-					case 'v':
-					case 'm':
-					case 'l':
-					case 't':
-					case 'q':
-					case 's':
-					case 'c':
-					case 'a':
-						console.warn(`Breaking chains is only possible on absolute commands.\nSkipping command ${command.type}!`);
-						result.push(command);
-						break;
-
 					case 'Z':
 					case 'z':
 						result.push({type: 'Z'});
@@ -387,6 +376,8 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 
 					case 'H':
 					case 'V':
+					case 'h':
+					case 'v':
 						for(p=0; p<command.parameters.length; p+=2) {
 							result.push({type: command.type, parameters: [command.parameters[p]]});
 						}
@@ -399,8 +390,17 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 						}
 						break;
 
+					case 'm':
+						// Chained MoveTo commands are treated like LineTo commands
+						for(p=0; p<command.parameters.length; p+=2) {
+							result.push({type: (p<2? 'm' : 'l'), parameters: [command.parameters[p], command.parameters[p+1]]});
+						}
+						break;
+
 					case 'L':
 					case 'T':
+					case 'l':
+					case 't':
 						for(p=0; p<command.parameters.length; p+=2) {
 							result.push({type: command.type, parameters: [command.parameters[p], command.parameters[p+1]]});
 						}
@@ -408,18 +408,22 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 
 					case 'Q':
 					case 'S':
+					case 'q':
+					case 's':
 						for(p=0; p<command.parameters.length; p+=4) {
 							result.push({type: command.type, parameters: [command.parameters[p], command.parameters[p+1], command.parameters[p+2], command.parameters[p+3]]});
 						}
 						break;
 					
 					case 'C':
+					case 'c':
 						for(p=0; p<command.parameters.length; p+=6) {
 							result.push({type: command.type, parameters: [command.parameters[p], command.parameters[p+1], command.parameters[p+2], command.parameters[p+3], command.parameters[p+4], command.parameters[p+5]]});
 						}
 						break;
-
+						
 					case 'A':
+					case 'a':
 						for(p=0; p<command.parameters.length; p+=7) {
 							result.push({type: command.type, parameters: [command.parameters[p], command.parameters[p+1], command.parameters[p+2], command.parameters[p+3], command.parameters[p+4], command.parameters[p+5], command.parameters[p+6]]});
 						}
