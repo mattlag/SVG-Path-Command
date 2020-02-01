@@ -29,13 +29,17 @@
 		function main(){
 			let target = document.getElementById('target');
 			target.innerHTML = `
+				<div class="titles">
+					<div>SVG Preview</div>
+					<div id="message">SVG Code - drag and drop a file here to load new code</div>
+				</div>
 				<div id="pre">
 					<div id="pre-img" class="post-img">${_UI.fileContents}</div>
-					<textarea id="pre-src"></textarea>
+					<textarea id="pre-src" onchange="_UI.fileContents = decode(this.innerHTML); refresh();"></textarea>
 				</div>
 				<div id="post">
 					<div id="post-img" class="post-img"></div>
-					<textarea id="post-src"></textarea>
+					<textarea id="post-src" readonly></textarea>
 				</div>
 			`;
 
@@ -46,9 +50,30 @@
 		}
 
 		function refresh() {
-			_UI.postSource = convertSVGDocument(_UI.fileContents, getOptions());
+			try {
+				_UI.postSource = convertSVGDocument(_UI.fileContents, getOptions());
+			} catch (err){
+				updateMessage('Error reading the SVG document');
+				return;
+			}
+
+			document.getElementById(`pre-src`).innerHTML = _UI.fileContents;
+			document.getElementById(`post-img`).innerHTML = _UI.fileContents;
 			document.getElementById(`post-img`).innerHTML = _UI.postSource;
 			document.getElementById(`post-src`).innerHTML = _UI.postSource;
+		}
+
+		function updateMessage(msg) {
+			console.log(msg);
+		}
+
+		function decode(content = ''){
+			content = content.replace(/&lt;/gi, '<');
+			content = content.replace(/&gt;/gi, '>');
+			content = content.replace(/\\"/gi, "'");
+
+
+			return content;
 		}
 
 		function getOptions(){
@@ -77,6 +102,31 @@
 				document.getElementById('toggle-original').setAttribute('selected', 'selected');
 				document.getElementById('toggle-converted').removeAttribute('selected');
 			}
+		}
+
+		function dropFile(evt) {
+			evt.stopPropagation();
+			evt.preventDefault();
+
+			var f = evt.dataTransfer;
+			f = f.files[0] || '';
+			var fname = f.name.split('.');
+			fname = fname[fname.length-1].toLowerCase();
+
+			var reader = new FileReader();
+
+			if (fname === 'svg'){
+				reader.onload = function() {
+					_UI.fileContents = reader.result;
+					refresh();
+				};
+
+				reader.readAsText(f);
+
+			} else {
+				updateMessage('Only SVG files can be dropped here');
+			}
+
 		}
 	</script>
 	<style>
@@ -111,11 +161,11 @@
 			margin: 0px 4px;
 		}
 
-		#pre, #post {
+		#pre, #post, .titles {
 			display: grid;
 			grid-template-columns: 300px 1fr;
 			column-gap: 20px;
-			padding-top: 40px;
+			margin-top: 10px;
 		}
 		
 		#pre {
@@ -124,6 +174,31 @@
 
 		#pre-img, #post-img {
 			display: inline-block;
+		}
+
+		#post-src {
+			user-select: none;
+			background-color: hsl(0, 0%, 95%);
+			cursor: default;
+		}
+
+		svg, textarea {
+			border: 1px solid hsl(0, 0%, 70%);
+		}
+
+		.titles {
+			margin-bottom: 0px;
+		}
+
+		.titles div {
+			padding:10px 0px 10px 2px;
+			position: relative;
+			top:20px;
+		}
+
+		#message {
+			font-style: bold;
+			border: 1px dotted hsl(0, 100%, 85%);
 		}
 
 		.option {
@@ -160,6 +235,7 @@
 			width: 100%;
 			font-family: 'Cascadia Code', Consolas, monospace;
 			font-size: 14px;
+			padding: 4px 2px 12px 4px;
 		}
 	</style>
 </head>
