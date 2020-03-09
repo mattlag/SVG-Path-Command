@@ -103,10 +103,19 @@ const convertSVGPathCommands = function(dAttribute = '', options = {}) {
 		// Clean up whitespace
 		let data = dAttribute.replace(/\s+/g, ',');
 		
-		// Clean up negative numbers, and scientific notation numbers
+		// Clean up numbers
+		//		Maintain scientific notation e+ and e- numbers
+		//		Commas before all negative numbers
+		//		Remove + to denote positive numbers
+		data = data.replace(/e/gi, 'e');
+
 		data = data.replace(/e-/g, '~~~');
 		data = data.replace(/-/g, ',-');
 		data = data.replace(/~~~/g, 'e-');
+
+		data = data.replace(/e\+/g, '~~~');
+		data = data.replace(/\+/g, ',');
+		data = data.replace(/~~~/g, 'e+');
 
 		// Clean up commas
 		data = data.replace(/,+/g,',');
