@@ -1,0 +1,152 @@
+:root {
+	--img-width: 300px;
+}
+
+* {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+body {
+	background-color: hsl(0, 0%, 97%);
+	display: table;
+	min-height: 100vh;
+	grid-template-rows: min-content, min-content, 1fr;
+}
+
+.top {
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.tabs {
+	width: 100%;
+	border-bottom: 1px solid gray;
+	margin-bottom: 0px;
+	padding-left: 20px;
+}
+
+#target {
+	width: 100%;
+	min-height: 100%;
+	overflow-y: auto;
+	background-color: white;
+	margin-top: 0px;
+	padding: 20px;
+	display: grid;
+	grid-template-rows: min-content 1fr;
+	row-gap: 20px;
+}
+
+h1,
+h2,
+h3 {
+	margin-bottom: 20px;
+	font-weight: normal;
+}
+
+i {
+	color: gray;
+	padding-left: 20px;
+	font-size: 0.8em;
+}
+
+pre {
+	display: inline-block;
+	font-family: 'Cascadia Code', Consolas, monospace;
+	background-color: hsl(0, 0%, 90%);
+	color: black;
+	border-radius: 3px;
+	padding: 2px 4px;
+	margin: 0px 4px;
+}
+
+#pre,
+#post,
+.titles {
+	display: grid;
+	grid-template-columns: var(--img-width) 1fr;
+	column-gap: 20px;
+}
+
+#post {
+	display: none;
+}
+
+#pre-img,
+#post-img {
+	display: inline-block;
+}
+
+#post-img svg,
+#pre-img svg {
+	max-width: var(--img-width);
+	max-height: var(--img-width);
+}
+
+#post-src {
+	user-select: none;
+	background-color: hsl(0, 0%, 95%);
+	cursor: default;
+}
+
+svg,
+textarea {
+	border: 1px solid hsl(0, 0%, 70%);
+}
+
+textarea {
+	display: inline-block;
+	height: 50vh;
+	width: 100%;
+	font-family: 'Cascadia Code', Consolas, monospace;
+	font-size: 14px;
+	padding: 4px 2px 12px 4px;
+}
+
+.titles {
+	margin-bottom: 0px;
+}
+
+.titles div {
+	padding: 10px 0px 10px 2px;
+}
+
+#message {
+	font-style: bold;
+	border: 1px dotted hsl(0, 100%, 85%);
+}
+
+.option {
+	display: inline-block;
+}
+
+
+.tabs button {
+	color: hsl(194, 100%, 10%);
+	background-color: transparent;
+	border-style: solid;
+	border-width: 1px 1px 0px 1px;
+	border-color: gray;
+	border-radius: 4px 4px 0px 0px;
+	padding: 4px 8px;
+	font-size: 1.2em;
+	margin-right: -1px;
+	position: relative;
+	top: 1px;
+}
+
+.tabs button:hover {
+	cursor: pointer;
+}
+
+.tabs button[selected] {
+	color: hsl(194, 100%, 10%);
+	background-color: white;
+}
+
+.tabs button[selected]:hover {
+	cursor: normal;
+}

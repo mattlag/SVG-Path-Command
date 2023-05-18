@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>SVG Path Command - Converter Tool</title>
+	<script src="../svg-path-command.js"></script>
+	<script src="./script.js"></script>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body onload='main();'>
+	<div class="top">
+		<h1>SVG Path Command Converter Tool</h1>
+		Drag-and-drop or specify a SVG file, and this tool will do a bunch of stuff that
+		makes the drawing commands in the <pre>d</pre> attribute of <pre>path</pre> tags easier to read by humans.
+		Read more on <a href="https://github.com/mattlag/SVG-Path-Command" target=_new>github.com/mattlag/SVG-Path-Command</a>.
+
+		<h3>Conversion options</h3>
+
+		<span class="option">
+			<input type="checkbox" checked id="check-convertAbsolute" onchange="refresh();">&nbsp;<label for="check-convertAbsolute">Convert&nbsp;relative&nbsp;commands&nbsp;to&nbsp;absolute</label>&emsp;
+		</span>
+		<span class="option">
+			<input type="checkbox" checked id="check-addLineBreaks" onchange="refresh();">&nbsp;<label for="check-addLineBreaks">Add&nbsp;line&nbsp;breaks</label>&emsp;
+		</span>
+		<span class="option">
+			<input type="checkbox" checked id="check-splitChains" onchange="refresh();">&nbsp;<label for="check-splitChains">Split&nbsp;command&nbsp;chains</label>&emsp;
+		</span>
+		<span class="option">
+			<input type="checkbox" checked id="check-convertLines" onchange="refresh();">&nbsp;<label for="check-convertLines">Convert&nbsp;shorthand&nbsp;lines</label>&emsp;
+		</span>
+		<span class="option">
+			<input type="checkbox" checked id="check-convertSmooth" onchange="refresh();">&nbsp;<label for="check-convertSmooth">Convert&nbsp;smooth&nbsp;Beziers&nbsp;to&nbsp;standard</label>&emsp;
+		</span>
+		<span class="option">
+			<input type="checkbox" checked id="check-convertQuadraticToCubic" onchange="refresh();">&nbsp;<label for="check-convertQuadraticToCubic">Convert&nbsp;quadratic&nbsp;Beziers&nbsp;to&nbsp;cubic</label>&emsp;
+		</span>
+		<span class="option">
+			<input type="checkbox" checked id="check-convertArcToCubic" onchange="refresh();">&nbsp;<label for="check-convertArcToCubic">Convert&nbsp;Arcs&nbsp;to&nbsp;cubic&nbsp;Beziers</label>&emsp;
+		</span>
+		<span class="option">
+			<input type="checkbox" checked id="check-correctFloatingPoint" onchange="refresh();">&nbsp;<label for="check-correctFloatingPoint">Round&nbsp;floating&nbsp;point&nbsp;math&nbsp;errors</label>&emsp;
+		</span>
+	</div>
+
+	<div class="tabs">
+		<button selected id="toggle-original" onclick="toggleView('original');">Original</button>
+		<button id="toggle-converted" onclick="toggleView('converted');">Converted</button>
+	</div>
+
+	<div id="target">
+		<div id="pre">
+			<div id="pre-img" class="post-img"></div>
+			<textarea id="pre-src" onchange="refresh();"></textarea>
+		</div>
+		<div id="post">
+			<div id="post-img" class="post-img"></div>
+			<textarea id="post-src" readonly></textarea>
+		</div>
+	</div>
+</body>
+</html>
