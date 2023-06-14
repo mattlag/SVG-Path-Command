@@ -8,13 +8,10 @@
  * @param {boolean} options.splitChains - chained parameters will be split to have their own command
  * @param {boolean} options.convertLines - changes H and V shorthand to regular LineTo notation
  * @param {boolean} options.convertSmooth - convert smooth Béziers to regular Béziers
- * @param {boolean} options.convertQuadraticToCubic - quadratic Béziers (one control point) converted
- * 											to cubic Béziers (two control points)
+ * @param {boolean} options.convertQuadraticToCubic - quadratic Béziers (one control point) converted to cubic Béziers (two control points)
  * @param {boolean} options.convertArcToCubic - approximate the Arc with cubic Bézier paths
- * @param {boolean} options.returnObject - return an object representation of the commands, as
- * 								opposed to a single string representing the d attribute value
- * @param {boolean} options.correctFloatingPoint - rounds numbers that appear to be the result of bad
- * 								floating point math
+ * @param {boolean} options.returnObject - return an object representation of the commands, as opposed to a single string representing the d attribute value
+ * @param {boolean} options.correctFloatingPoint - rounds numbers that appear to be the result of bad floating point math
  */
 const validateOptions = function (options) {
 	options.convertAbsolute = !!options.convertAbsolute;
@@ -62,6 +59,8 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 	let commands = chunkCommands(dAttribute);
 
 	// Convert relative commands mlhvcsqtaz to absolute commands MLHVCSQTAZ
+	// Converting to Absolute should be done before convertLineTo and convertSmoothBeziers
+	// because they are unable to handle relative commands.
 	if (options.convertAbsolute) commands = convertToAbsolute(commands);
 
 	// Convert chains of parameters to individual command / parameter pairs
@@ -201,14 +200,10 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 		// log(`Start convertToAbsolute: ${commands.length} command chunks`);
 		let result = [];
 		let newCommand = {};
-		let i;
 		let currentPoint = { x: 0, y: 0 };
 		let newPoint = { x: 0, y: 0 };
-		let command;
 
-		for (let c = 0; c < commands.length; c++) {
-			command = commands[c];
-
+		commands.forEach((command) => {
 			if (command.type === 'm' || command.type === 'l') {
 				// MoveTo and LineTo
 				newCommand = {
@@ -216,7 +211,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					parameters: [],
 				};
 
-				for (i = 0; i < command.parameters.length; i += 2) {
+				for (let i = 0; i < command.parameters.length; i += 2) {
 					newPoint.x = command.parameters[i + 0] + currentPoint.x;
 					newPoint.y = command.parameters[i + 1] + currentPoint.y;
 					newCommand.parameters.push(newPoint.x);
@@ -233,7 +228,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					parameters: [],
 				};
 
-				for (i = 0; i < command.parameters.length; i++) {
+				for (let i = 0; i < command.parameters.length; i++) {
 					newPoint.x = command.parameters[i] + currentPoint.x;
 					newCommand.parameters.push(newPoint.x);
 					currentPoint.x = newPoint.x;
@@ -247,7 +242,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					parameters: [],
 				};
 
-				for (i = 0; i < command.parameters.length; i++) {
+				for (let i = 0; i < command.parameters.length; i++) {
 					newPoint.y = command.parameters[i] + currentPoint.y;
 					newCommand.parameters.push(newPoint.y);
 					currentPoint.y = newPoint.y;
@@ -261,7 +256,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					parameters: [],
 				};
 
-				for (i = 0; i < command.parameters.length; i += 6) {
+				for (let i = 0; i < command.parameters.length; i += 6) {
 					newCommand.parameters.push(
 						command.parameters[i + 0] + currentPoint.x
 					);
@@ -290,7 +285,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					parameters: [],
 				};
 
-				for (i = 0; i < command.parameters.length; i += 4) {
+				for (let i = 0; i < command.parameters.length; i += 4) {
 					newCommand.parameters.push(
 						command.parameters[i + 0] + currentPoint.x
 					);
@@ -313,7 +308,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					parameters: [],
 				};
 
-				for (i = 0; i < command.parameters.length; i += 4) {
+				for (let i = 0; i < command.parameters.length; i += 4) {
 					newCommand.parameters.push(
 						command.parameters[i + 0] + currentPoint.x
 					);
@@ -336,7 +331,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					parameters: [],
 				};
 
-				for (i = 0; i < command.parameters.length; i += 2) {
+				for (let i = 0; i < command.parameters.length; i += 2) {
 					newPoint.x = command.parameters[i + 0] + currentPoint.x;
 					newPoint.y = command.parameters[i + 1] + currentPoint.y;
 					newCommand.parameters.push(newPoint.x);
@@ -353,7 +348,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					parameters: [],
 				};
 				// log(`Arc to relative parameters\n${command.parameters}`);
-				for (i = 0; i < command.parameters.length; i += 7) {
+				for (let i = 0; i < command.parameters.length; i += 7) {
 					newCommand.parameters.push(command.parameters[i + 0]);
 					newCommand.parameters.push(command.parameters[i + 1]);
 					newCommand.parameters.push(command.parameters[i + 2]);
@@ -370,24 +365,22 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 				result.push(newCommand);
 			} else if (command.type === 'z') {
 				// End path
+				// Current point is remembered across z command
 				result.push({ type: 'Z' });
 			} else {
 				// command is absolute, push it
 				result.push(command);
 				currentPoint = getNewEndPoint(currentPoint, command);
 			}
-		}
+		});
 
 		return result;
 	}
 
 	function splitChainParameters(commands) {
 		let result = [];
-		let command;
-		let p;
 
-		for (let c = 0; c < commands.length; c++) {
-			command = commands[c];
+		commands.forEach((command) => {
 			if (command.type) {
 				switch (command.type) {
 					case 'Z':
@@ -399,7 +392,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					case 'V':
 					case 'h':
 					case 'v':
-						for (p = 0; p < command.parameters.length; p += 2) {
+						for (let p = 0; p < command.parameters.length; p += 2) {
 							result.push({
 								type: command.type,
 								parameters: [command.parameters[p]],
@@ -409,7 +402,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 
 					case 'M':
 						// Chained MoveTo commands are treated like LineTo commands
-						for (p = 0; p < command.parameters.length; p += 2) {
+						for (let p = 0; p < command.parameters.length; p += 2) {
 							result.push({
 								type: p < 2 ? 'M' : 'L',
 								parameters: [command.parameters[p], command.parameters[p + 1]],
@@ -419,7 +412,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 
 					case 'm':
 						// Chained MoveTo commands are treated like LineTo commands
-						for (p = 0; p < command.parameters.length; p += 2) {
+						for (let p = 0; p < command.parameters.length; p += 2) {
 							result.push({
 								type: p < 2 ? 'm' : 'l',
 								parameters: [command.parameters[p], command.parameters[p + 1]],
@@ -431,7 +424,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					case 'T':
 					case 'l':
 					case 't':
-						for (p = 0; p < command.parameters.length; p += 2) {
+						for (let p = 0; p < command.parameters.length; p += 2) {
 							result.push({
 								type: command.type,
 								parameters: [command.parameters[p], command.parameters[p + 1]],
@@ -443,7 +436,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					case 'S':
 					case 'q':
 					case 's':
-						for (p = 0; p < command.parameters.length; p += 4) {
+						for (let p = 0; p < command.parameters.length; p += 4) {
 							result.push({
 								type: command.type,
 								parameters: [
@@ -458,7 +451,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 
 					case 'C':
 					case 'c':
-						for (p = 0; p < command.parameters.length; p += 6) {
+						for (let p = 0; p < command.parameters.length; p += 6) {
 							result.push({
 								type: command.type,
 								parameters: [
@@ -475,7 +468,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 
 					case 'A':
 					case 'a':
-						for (p = 0; p < command.parameters.length; p += 7) {
+						for (let p = 0; p < command.parameters.length; p += 7) {
 							result.push({
 								type: command.type,
 								parameters: [
@@ -492,7 +485,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 						break;
 				}
 			}
-		}
+		});
 
 		return result;
 	}
@@ -500,12 +493,10 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 	function convertLineTo(commands) {
 		// log(`Start convertLineTo`);
 		let result = [];
-		let command;
-		let currentPoint = { x: 0, y: 0 };
-		let p;
 
-		for (let c = 0; c < commands.length; c++) {
-			command = commands[c];
+		let currentPoint = { x: 0, y: 0 };
+
+		commands.forEach((command) => {
 			// log(`doing ${command.type} [${command.parameters.join()}]`);
 
 			if (command.type === 'h') {
@@ -519,14 +510,14 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 				);
 				result.push(command);
 			} else if (command.type === 'H') {
-				for (p = 0; p < command.parameters.length; p++) {
+				for (let p = 0; p < command.parameters.length; p++) {
 					result.push({
 						type: 'L',
 						parameters: [command.parameters[p], currentPoint.y],
 					});
 				}
 			} else if (command.type === 'V') {
-				for (p = 0; p < command.parameters.length; p++) {
+				for (let p = 0; p < command.parameters.length; p++) {
 					result.push({
 						type: 'L',
 						parameters: [currentPoint.x, command.parameters[p]],
@@ -539,7 +530,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 			// log(`pushed ${result[result.length-1].type} [${result[result.length-1].parameters.join()}]`);
 			currentPoint = getNewEndPoint(currentPoint, command);
 			// log(`new end point ${currentPoint.x}, ${currentPoint.y}`);
-		}
+		});
 
 		return result;
 	}
@@ -547,22 +538,20 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 	function convertSmoothBeziers(commands) {
 		// log(`Start convertSmoothBeziers`);
 		let result = [];
-		let command;
+
 		let currentPoint = { x: 0, y: 0 };
 		let previousHandle = { x: 0, y: 0 };
 		let smoothHandle = { x: 0, y: 0 };
 		let previousResult;
 
-		for (let c = 0; c < commands.length; c++) {
-			command = commands[c];
-
+		commands.forEach((command) => {
 			if (command.type === 's' || command.type === 't') {
 				console.warn(
 					`Converting smooth Bezier curve commands is only possible on absolute commands.\nSkipping command ${command.type}!`
 				);
 				result.push(command);
 			} else if (command.type === 'S' || command.type === 'T') {
-				previousResult = result.length > 1 ? result[result.length - 1] : false;
+				previousResult = result.length > 1 ? result.at(-1) : false;
 
 				// This allows for using a smooth cubic after a quadratic,
 				// or a smooth quadratic after a cubic... which may not be standard
@@ -610,14 +599,14 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 			}
 
 			currentPoint = getNewEndPoint(currentPoint, command);
-		}
+		});
 
 		return result;
 	}
 
 	function convertQuadraticBeziers(commands) {
 		let result = [];
-		let command;
+
 		let currentPoint = { x: 0, y: 0 };
 		let q0x;
 		let q0y;
@@ -630,9 +619,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 		let c2x;
 		let c2y;
 
-		for (let c = 0; c < commands.length; c++) {
-			command = commands[c];
-
+		commands.forEach((command) => {
 			if (command.type === 'Q') {
 				q0x = currentPoint.x;
 				q0y = currentPoint.y;
@@ -653,7 +640,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 			}
 
 			currentPoint = getNewEndPoint(currentPoint, command);
-		}
+		});
 
 		return result;
 	}
@@ -662,15 +649,10 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 		let result = [];
 		let convertedBeziers = [];
 		let currentPoint = { x: 0, y: 0 };
-		let command;
-		let p;
-		let i;
 
-		for (let c = 0; c < commands.length; c++) {
-			command = commands[c];
-
+		commands.forEach((command) => {
 			if (command.type === 'A') {
-				for (p = 0; p < command.parameters.length; p += 7) {
+				for (let p = 0; p < command.parameters.length; p += 7) {
 					convertedBeziers = convertArcToCommandToBezier(
 						currentPoint.x,
 						currentPoint.y,
@@ -705,15 +687,15 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					}
 
 					currentPoint = {
-						x: convertedBeziers[convertedBeziers.length - 2],
-						y: convertedBeziers[convertedBeziers.length - 1],
+						x: convertedBeziers.at(-2),
+						y: convertedBeziers.at(-1),
 					};
 				}
 			} else {
 				result.push(command);
 				currentPoint = getNewEndPoint(currentPoint, command);
 			}
-		}
+		});
 
 		return result;
 	}
@@ -946,11 +928,11 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 			coord.x -= about.x;
 			coord.y -= about.y;
 
-			let newx = coord.x * Math.cos(deltaRad) - coord.y * Math.sin(deltaRad);
-			let newy = coord.x * Math.sin(deltaRad) + coord.y * Math.cos(deltaRad);
+			let newX = coord.x * Math.cos(deltaRad) - coord.y * Math.sin(deltaRad);
+			let newY = coord.x * Math.sin(deltaRad) + coord.y * Math.cos(deltaRad);
 
-			coord.x = newx + about.x;
-			coord.y = newy + about.y;
+			coord.x = newX + about.x;
+			coord.y = newY + about.y;
 
 			return coord;
 		}
@@ -958,12 +940,10 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 
 	function generateDAttribute(commands, addLineBreaks) {
 		let result = '';
-		let command;
-		let p;
+
 		let lineBreak = addLineBreaks ? '\n\t' : '';
 
-		for (let i = 0; i < commands.length; i++) {
-			command = commands[i];
+		commands.forEach((command) => {
 			if (command.type) {
 				result += `${lineBreak}${command.type}`;
 
@@ -978,7 +958,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					case 'h':
 					case 'V':
 					case 'v':
-						for (p = 0; p < command.parameters.length; p += 2) {
+						for (let p = 0; p < command.parameters.length; p += 2) {
 							result += ` ${param(p)}`;
 						}
 						result += '  ';
@@ -990,7 +970,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					case 'l':
 					case 'T':
 					case 't':
-						for (p = 0; p < command.parameters.length; p += 2) {
+						for (let p = 0; p < command.parameters.length; p += 2) {
 							if (addLineBreaks && p > 1) result += '\n\t ';
 							result += ` ${param(p)},${param(p + 1)}`;
 						}
@@ -1001,7 +981,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 					case 'q':
 					case 'S':
 					case 's':
-						for (p = 0; p < command.parameters.length; p += 4) {
+						for (let p = 0; p < command.parameters.length; p += 4) {
 							if (addLineBreaks && p > 1) result += '\n\t ';
 							result += ` ${param(p)},${param(p + 1)} ${param(p + 2)},${param(
 								p + 3
@@ -1012,7 +992,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 
 					case 'C':
 					case 'c':
-						for (p = 0; p < command.parameters.length; p += 6) {
+						for (let p = 0; p < command.parameters.length; p += 6) {
 							if (addLineBreaks && p > 1) result += '\n\t ';
 							result += ` ${param(p)},${param(p + 1)} ${param(p + 2)},${param(
 								p + 3
@@ -1023,7 +1003,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 
 					case 'A':
 					case 'a':
-						for (p = 0; p < command.parameters.length; p += 7) {
+						for (let p = 0; p < command.parameters.length; p += 7) {
 							if (addLineBreaks && p > 1) result += '\n\t ';
 							result += ` ${param(p)} ${param(p + 1)} ${param(p + 2)} ${param(
 								p + 3
@@ -1033,7 +1013,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 						break;
 				}
 			}
-		}
+		});
 
 		function param(num) {
 			let p = command.parameters[num];
@@ -1073,7 +1053,6 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 			x: currentPoint.x || 0,
 			y: currentPoint.y || 0,
 		};
-		let p;
 
 		switch (command.type) {
 			case 'Z':
@@ -1081,11 +1060,11 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 				break;
 
 			case 'H':
-				returnPoint.x = command.parameters[command.parameters.length - 1];
+				returnPoint.x = command.parameters.at(-1);
 				break;
 
 			case 'V':
-				returnPoint.y = command.parameters[command.parameters.length - 1];
+				returnPoint.y = command.parameters.at(-1);
 				break;
 
 			case 'M':
@@ -1095,18 +1074,18 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 			case 'A':
 			case 'Q':
 			case 'T':
-				returnPoint.x = command.parameters[command.parameters.length - 2];
-				returnPoint.y = command.parameters[command.parameters.length - 1];
+				returnPoint.x = command.parameters.at(-2);
+				returnPoint.y = command.parameters.at(-1);
 				break;
 
 			case 'h':
-				for (p = 0; p < command.parameters.length; p++) {
+				for (let p = 0; p < command.parameters.length; p++) {
 					returnPoint.x += command.parameters[p];
 				}
 				break;
 
 			case 'v':
-				for (p = 0; p < command.parameters.length; p++) {
+				for (let p = 0; p < command.parameters.length; p++) {
 					returnPoint.y += command.parameters[p];
 				}
 				break;
@@ -1114,7 +1093,7 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 			case 'm':
 			case 'l':
 			case 't':
-				for (p = 0; p < command.parameters.length; p += 2) {
+				for (let p = 0; p < command.parameters.length; p += 2) {
 					returnPoint.x += command.parameters[p + 0];
 					returnPoint.y += command.parameters[p + 1];
 				}
@@ -1122,21 +1101,21 @@ const convertSVGPathCommands = function (dAttribute = '', options = {}) {
 
 			case 'q':
 			case 's':
-				for (p = 0; p < command.parameters.length; p += 4) {
+				for (let p = 0; p < command.parameters.length; p += 4) {
 					returnPoint.x += command.parameters[p + 2];
 					returnPoint.y += command.parameters[p + 3];
 				}
 				break;
 
 			case 'c':
-				for (p = 0; p < command.parameters.length; p += 6) {
+				for (let p = 0; p < command.parameters.length; p += 6) {
 					returnPoint.x += command.parameters[p + 4];
 					returnPoint.y += command.parameters[p + 5];
 				}
 				break;
 
 			case 'a':
-				for (p = 0; p < command.parameters.length; p += 7) {
+				for (let p = 0; p < command.parameters.length; p += 7) {
 					returnPoint.x += command.parameters[p + 5];
 					returnPoint.y += command.parameters[p + 6];
 				}
@@ -1213,10 +1192,10 @@ const convertSVGDocument = function (document = '', options = {}) {
 			throw XMLerror;
 		}
 
-		let parsererror = XMLdoc.getElementsByTagName('parsererror');
-		if (parsererror.length) {
-			let msgcon = parsererror[0].innerHTML;
-			XMLerror = new SyntaxError(msgcon);
+		let parserError = XMLdoc.getElementsByTagName('parserError');
+		if (parserError.length) {
+			let message = parserError[0].innerHTML;
+			XMLerror = new SyntaxError(message);
 			throw XMLerror;
 		}
 

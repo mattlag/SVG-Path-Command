@@ -33,39 +33,47 @@
 		function main(){
 			let target = document.getElementById('target');
 			target.innerHTML = '';
-			for(let i=0; i<files.length; i++){
+			files.forEach(fileName => {
+				// <img id="pre-img-${fileName}" src="${fileName}.svg" type="image/svg+xml"/>
 				target.innerHTML += `
-					<h3>${files[i]}</h3>
-					<object id="pre-img-${files[i]}" data="tests/${files[i]}.svg" type="image/svg+xml"></object>
-					<textarea id="pre-src-${files[i]}"></textarea>
-					<div id="post-img-${files[i]}" class="post-img"></div>
-					<textarea id="post-src-${files[i]}"></textarea>
+				<h3>${fileName}</h3>
+					<object id="pre-img-${fileName}" data="${fileName}.svg" type="image/svg+xml"></object>
+					<textarea id="pre-src-${fileName}"></textarea>
+					<div id="post-img-${fileName}" class="post-img"></div>
+					<textarea id="post-src-${fileName}"></textarea>
 				`;
-			}
+			});
 
-			for(let j=0; j<files.length; j++){
-				document.getElementById(`pre-img-${files[j]}`).addEventListener("load", function(){
-					console.log(`\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n${files[j]}\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
+			files.forEach(fileName => {
+				document.getElementById(`pre-img-${fileName}`).addEventListener('load', function(){
+					// console.log(`\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n${fileName}`);
+					// console.log(this.contentDocument);
+					if(this.contentDocument) {
 					let preSource = this.contentDocument.children[0].outerHTML;
-					document.getElementById(`pre-src-${files[j]}`).innerHTML = preSource;
-					fileContent[files[j]] = preSource;
+					document.getElementById(`pre-src-${fileName}`).innerHTML = preSource;
+					fileContent[fileName] = preSource;
 					let postSource = convertSVGDocument(preSource, getOptions());
-					document.getElementById(`post-img-${files[j]}`).innerHTML = postSource;
-					document.getElementById(`post-src-${files[j]}`).innerHTML = postSource;
+					document.getElementById(`post-img-${fileName}`).innerHTML = postSource;
+					document.getElementById(`post-src-${fileName}`).innerHTML = postSource;
+					} else {
+						let message = 'Only works on a server, something like `npx http-server`';
+						document.getElementById('target').innerHTML = message;
+						console.error(message);
+					}
 				}, false);
-			}
+			});
 		}
 
 		function refresh() {
 			console.warn('REFRESH');
 			// files = files.slice(0, 6);
-			for(let j=0; j<files.length; j++){
-				console.log(`\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n${files[j]}\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
-				let preSource = fileContent[files[j]];
+			files.forEach(fileName => {
+				console.log(`\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n${fileName}\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
+				let preSource = fileContent[fileName];
 				let postSource = convertSVGDocument(preSource, getOptions());
-				document.getElementById(`post-img-${files[j]}`).innerHTML = postSource;
-				document.getElementById(`post-src-${files[j]}`).innerHTML = postSource;
-			}
+				document.getElementById(`post-img-${fileName}`).innerHTML = postSource;
+				document.getElementById(`post-src-${fileName}`).innerHTML = postSource;		
+			});
 		}
 
 		function getOptions(){
